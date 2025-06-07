@@ -29,4 +29,10 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
         return usuarioSpringRepository.findByEmail(email)
                 .map(usuarioMapper::toDomain);
     }
+
+    @Override
+    public Optional<Usuario> findById(Long id) {
+        return usuarioSpringRepository.findById(id)
+                .map(usuarioMapper::toDomain);
+    }
 } 

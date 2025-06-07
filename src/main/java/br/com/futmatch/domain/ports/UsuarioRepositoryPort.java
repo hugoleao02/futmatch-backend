@@ -7,4 +7,5 @@ import br.com.futmatch.domain.models.Usuario;
 public interface UsuarioRepositoryPort {
     Usuario save(Usuario usuario);
     Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findById(Long id);
 } 
