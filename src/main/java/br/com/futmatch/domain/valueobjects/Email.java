@@ -1,5 +1,6 @@
 package br.com.futmatch.domain.valueobjects;
 
+import br.com.futmatch.domain.exception.InvalidEmailFormatException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -15,11 +16,11 @@ public class Email {
     
     public Email(String value) {
         if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email não pode ser nulo ou vazio");
+            throw new InvalidEmailFormatException("Email não pode ser nulo ou vazio");
         }
         
         if (!EMAIL_PATTERN.matcher(value).matches()) {
-            throw new IllegalArgumentException("Formato de email inválido: " + value);
+            throw new InvalidEmailFormatException("Formato de email inválido: " + value);
         }
         
         this.value = value.toLowerCase().trim();

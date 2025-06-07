@@ -1,8 +1,10 @@
 package br.com.futmatch.application.usecases;
 
-import br.com.futmatch.domain.models.Usuario;
+import br.com.futmatch.application.dtos.AuthResponse;
+import br.com.futmatch.application.dtos.LoginRequest;
+import br.com.futmatch.application.dtos.RegisterRequest;
 
 public interface AutenticacaoUseCase {
-    Usuario registerUser(String nome, String email, String senha);
-    Usuario loginUser(String email, String senha);
+    AuthResponse registerUser(RegisterRequest request);
+    AuthResponse loginUser(LoginRequest request);
 } 
