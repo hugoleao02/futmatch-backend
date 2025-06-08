@@ -12,9 +12,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/matches")
+@RequestMapping("/api/partidas")
 @RequiredArgsConstructor
-public class MatchController {
+public class PartidaController {
 
     private final CriarPartidaUseCase criarPartidaUseCase;
 

@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenServicePort tokenServicePort;
@@ -31,18 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = extractTokenFromRequest(request);
-        System.out.println("JWT Filter - Token extraído: " + (token != null ? token.substring(0, Math.min(30, token.length())) + "..." : "null"));
+        log.debug("Token extraído: {}", token != null ? token.substring(0, Math.min(30, token.length())) + "..." : "null");
 
         if (token != null && tokenServicePort.validateToken(token)) {
             try {
                 String email = tokenServicePort.getEmailFromToken(token);
-                System.out.println("JWT Filter - Email do token: " + email);
+                log.debug("Email do token: {}", email);
                 
                 Optional<Usuario> usuarioOpt = usuarioRepositoryPort.findByEmail(email);
 
                 if (usuarioOpt.isPresent()) {
                     Usuario usuario = usuarioOpt.get();
-                    System.out.println("JWT Filter - Usuário encontrado: " + usuario.getNome());
+                    log.debug("Usuário encontrado: {}", usuario.getNome());
                     
                     List<SimpleGrantedAuthority> authorities = usuario.getRoles().stream()
                             .map(SimpleGrantedAuthority::new)
@@ -52,17 +54,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(usuario, null, authorities);
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("JWT Filter - Autenticação definida com sucesso");
+                    log.debug("Autenticação definida com sucesso");
                 } else {
-                    System.out.println("JWT Filter - Usuário não encontrado para email: " + email);
+                    log.warn("Usuário não encontrado para email: {}", email);
                 }
             } catch (Exception e) {
-                // Token inválido - continua sem autenticação
-                System.out.println("JWT Filter - Erro ao processar token: " + e.getMessage());
-                logger.debug("Token JWT inválido: " + e.getMessage());
+                log.error("Erro ao processar token: {}", e.getMessage());
             }
         } else {
-            System.out.println("JWT Filter - Token inválido ou nulo");
+            log.warn("Token inválido ou nulo");
         }
 
         filterChain.doFilter(request, response);
@@ -71,7 +71,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            String token = bearerToken.substring(7);
+            // Remove aspas duplas extras se existirem
+            if (token.startsWith("\"") && token.endsWith("\"")) {
+                token = token.substring(1, token.length() - 1);
+            }
+            return token;
         }
         return null;
     }

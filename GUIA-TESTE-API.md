@@ -54,7 +54,7 @@ $headers = @{
     "Content-Type" = "application/json"
 }
 
-$partidaResponse = Invoke-RestMethod -Uri "http://localhost:8080/api/matches" -Method POST -Body $partidaBody -Headers $headers
+$partidaResponse = Invoke-RestMethod -Uri "http://localhost:8080/api/partidas" -Method POST -Body $partidaBody -Headers $headers
 Write-Host "✅ Partida criada!" -ForegroundColor Green
 Write-Host "ID: $($partidaResponse.id)" -ForegroundColor Cyan
 ```
@@ -84,7 +84,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 #### **3. Criar Partida (substitua SEU_TOKEN):**
 ```bash
-curl -X POST http://localhost:8080/api/matches \
+curl -X POST http://localhost:8080/api/partidas \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer SEU_TOKEN_AQUI" \
   -d '{
@@ -119,7 +119,7 @@ curl -X POST http://localhost:8080/api/matches \
 }
 ```
 
-**3. POST** `http://localhost:8080/api/matches`
+**3. POST** `http://localhost:8080/api/partidas`
 - **Headers:** `Authorization: Bearer {token_do_login}`
 ```json
 {

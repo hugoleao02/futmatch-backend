@@ -35,7 +35,7 @@ Este módulo implementa a funcionalidade de criação de partidas no FutMatch, s
 
 ## API Endpoints
 
-### POST `/api/matches`
+### POST `/api/partidas`
 Cria uma nova partida.
 
 **Headers:**
@@ -126,7 +126,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 3. **Criar partida (use o token retornado no login):**
 ```bash
-curl -X POST http://localhost:8080/api/matches \
+curl -X POST http://localhost:8080/api/partidas \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer SEU_TOKEN_AQUI" \
   -d '{

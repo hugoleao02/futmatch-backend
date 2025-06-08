@@ -28,7 +28,6 @@ public class PartidaApplicationService implements CriarPartidaUseCase {
         Usuario criador = usuarioRepositoryPort.findById(criadorId)
                 .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado com ID: " + criadorId));
         
-        // Criar a partida
         Partida partida = Partida.builder()
                 .nome(request.getNome())
                 .esporte(Esporte.valueOf(request.getEsporte().toUpperCase()))
