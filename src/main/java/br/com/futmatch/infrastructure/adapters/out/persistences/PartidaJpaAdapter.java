@@ -8,6 +8,10 @@ import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.Par
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class PartidaJpaAdapter implements PartidaRepositoryPort {
@@ -20,5 +24,25 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
         PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
         PartidaEntity savedEntity = partidaSpringRepository.save(entity);
         return partidaMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public Optional<Partida> findById(Long id) {
+        return partidaSpringRepository.findById(id)
+                .map(partidaMapper::toDomain);
+    }
+
+    @Override
+    public Partida update(Partida partida) {
+        PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
+        PartidaEntity updatedEntity = partidaSpringRepository.save(entity);
+        return partidaMapper.toDomain(updatedEntity);
+    }
+
+    @Override
+    public List<Partida> findAll() {
+        return partidaSpringRepository.findAll().stream()
+                .map(partidaMapper::toDomain)
+                .collect(Collectors.toList());
     }
 } 
