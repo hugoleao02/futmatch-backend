@@ -6,6 +6,10 @@ import br.com.futmatch.infrastructure.adapters.out.persistences.entities.Partida
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.PartidaSpringRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,6 +24,7 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     private final PartidaMapper partidaMapper;
 
     @Override
+    @CacheEvict(value = "partidas", allEntries = true)
     public Partida save(Partida partida) {
         PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
         PartidaEntity savedEntity = partidaSpringRepository.save(entity);
@@ -27,12 +32,14 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     }
 
     @Override
+    @Cacheable(value = "partidas", key = "#id")
     public Optional<Partida> findById(Long id) {
         return partidaSpringRepository.findById(id)
                 .map(partidaMapper::toDomain);
     }
 
     @Override
+    @CacheEvict(value = "partidas", allEntries = true)
     public Partida update(Partida partida) {
         PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
         PartidaEntity updatedEntity = partidaSpringRepository.save(entity);
@@ -44,5 +51,19 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
         return partidaSpringRepository.findAll().stream()
                 .map(partidaMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = "partidas", key = "'futuras_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public Page<Partida> findAllFuturas(Pageable pageable) {
+        return partidaSpringRepository.findAllFuturas(pageable)
+                .map(partidaMapper::toDomain);
+    }
+
+    @Override
+    @Cacheable(value = "partidas", key = "'passadas_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public Page<Partida> findAllPassadas(Pageable pageable) {
+        return partidaSpringRepository.findAllPassadas(pageable)
+                .map(partidaMapper::toDomain);
     }
 } 

@@ -13,7 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "partidas")
+@Table(name = "partidas", indexes = {
+    @Index(name = "idx_partida_data_hora", columnList = "data_hora"),
+    @Index(name = "idx_partida_criador", columnList = "criador_id"),
+    @Index(name = "idx_partida_tipo", columnList = "tipo_partida")
+})
 @Data
 @Builder
 @NoArgsConstructor

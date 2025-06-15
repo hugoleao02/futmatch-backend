@@ -4,6 +4,7 @@ import br.com.futmatch.application.dtos.PartidaRequest;
 import br.com.futmatch.application.dtos.PartidaResponse;
 import br.com.futmatch.application.dtos.PartidaUpdateRequest;
 import br.com.futmatch.application.usecases.AtualizarPartidaUseCase;
+import br.com.futmatch.application.usecases.BuscarPartidaPorIdUseCase;
 import br.com.futmatch.application.usecases.CriarPartidaUseCase;
 import br.com.futmatch.application.usecases.ListarPartidasUseCase;
 import br.com.futmatch.domain.models.Usuario;
@@ -24,6 +25,7 @@ public class PartidaController {
     private final CriarPartidaUseCase criarPartidaUseCase;
     private final AtualizarPartidaUseCase atualizarPartidaUseCase;
     private final ListarPartidasUseCase listarPartidasUseCase;
+    private final BuscarPartidaPorIdUseCase buscarPartidaPorIdUseCase;
 
     @PostMapping
     public ResponseEntity<PartidaResponse> criarPartida(
@@ -58,5 +60,11 @@ public class PartidaController {
     public ResponseEntity<List<PartidaResponse>> listarPartidas() {
         List<PartidaResponse> partidas = listarPartidasUseCase.listarPartidas();
         return ResponseEntity.ok(partidas);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PartidaResponse> buscarPartidaPorId(@PathVariable Long id) {
+        PartidaResponse partida = buscarPartidaPorIdUseCase.buscarPartidaPorId(id);
+        return ResponseEntity.ok(partida);
     }
 } 

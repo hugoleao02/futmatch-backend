@@ -4,6 +4,7 @@ import br.com.futmatch.application.dtos.PartidaRequest;
 import br.com.futmatch.application.dtos.PartidaResponse;
 import br.com.futmatch.application.dtos.PartidaUpdateRequest;
 import br.com.futmatch.application.usecases.AtualizarPartidaUseCase;
+import br.com.futmatch.application.usecases.BuscarPartidaPorIdUseCase;
 import br.com.futmatch.application.usecases.CriarPartidaUseCase;
 import br.com.futmatch.application.usecases.ListarPartidasUseCase;
 import br.com.futmatch.domain.exception.PartidaNotFoundException;
@@ -20,7 +21,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PartidaApplicationService implements CriarPartidaUseCase, AtualizarPartidaUseCase, ListarPartidasUseCase {
+public class PartidaApplicationService implements 
+    CriarPartidaUseCase, 
+    AtualizarPartidaUseCase, 
+    ListarPartidasUseCase,
+    BuscarPartidaPorIdUseCase {
 
     private final PartidaRepositoryPort partidaRepositoryPort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
@@ -177,5 +182,12 @@ public class PartidaApplicationService implements CriarPartidaUseCase, Atualizar
         return partidas.stream()
                 .map(this::mapearParaResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PartidaResponse buscarPartidaPorId(Long id) {
+        Partida partida = partidaRepositoryPort.findById(id)
+                .orElseThrow(() -> new PartidaNotFoundException("Partida não encontrada com ID: " + id));
+        return mapearParaResponse(partida);
     }
 } 

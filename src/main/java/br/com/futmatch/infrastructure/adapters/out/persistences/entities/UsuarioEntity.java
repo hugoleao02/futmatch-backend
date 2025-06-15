@@ -31,7 +31,7 @@ public class UsuarioEntity {
     
     private String fotoPerfilUrl;
     
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
     @Column(name = "role")
     @Builder.Default
