@@ -1,10 +1,12 @@
 package br.com.futmatch.domain.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Partida {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Partida implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String nome;
     private Esporte esporte;

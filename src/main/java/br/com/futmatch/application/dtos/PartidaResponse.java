@@ -1,17 +1,22 @@
 package br.com.futmatch.application.dtos;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartidaResponse {
+@JsonSerialize
+public class PartidaResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String nome;
     private String esporte;
