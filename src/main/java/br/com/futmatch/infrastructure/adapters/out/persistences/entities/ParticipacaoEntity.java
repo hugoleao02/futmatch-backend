@@ -1,26 +1,20 @@
 package br.com.futmatch.infrastructure.adapters.out.persistences.entities;
 
-import br.com.futmatch.domain.models.StatusParticipacao;
+import br.com.futmatch.domain.models.enums.StatusParticipacao;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "participacoes")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParticipacaoEntity {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
+public class ParticipacaoEntity  extends BaseEntity {
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private UsuarioEntity usuario;

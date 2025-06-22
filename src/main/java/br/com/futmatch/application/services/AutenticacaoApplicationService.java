@@ -1,8 +1,8 @@
 package br.com.futmatch.application.services;
 
-import br.com.futmatch.application.dtos.AuthResponse;
-import br.com.futmatch.application.dtos.LoginRequest;
-import br.com.futmatch.application.dtos.RegisterRequest;
+import br.com.futmatch.application.dtos.responses.AuthResponse;
+import br.com.futmatch.application.dtos.requests.LoginRequest;
+import br.com.futmatch.application.dtos.requests.RegisterRequest;
 import br.com.futmatch.application.usecases.AutenticacaoUseCase;
 import br.com.futmatch.domain.exception.EmailAlreadyExistsException;
 import br.com.futmatch.domain.exception.InvalidCredentialsException;

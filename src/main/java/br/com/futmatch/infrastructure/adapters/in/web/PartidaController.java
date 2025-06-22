@@ -1,8 +1,8 @@
 package br.com.futmatch.infrastructure.adapters.in.web;
 
-import br.com.futmatch.application.dtos.PartidaRequest;
-import br.com.futmatch.application.dtos.PartidaResponse;
-import br.com.futmatch.application.dtos.PartidaUpdateRequest;
+import br.com.futmatch.application.dtos.requests.PartidaRequest;
+import br.com.futmatch.application.dtos.responses.PartidaResponse;
+import br.com.futmatch.application.dtos.requests.PartidaUpdateRequest;
 import br.com.futmatch.application.usecases.AtualizarPartidaUseCase;
 import br.com.futmatch.application.usecases.BuscarPartidaPorIdUseCase;
 import br.com.futmatch.application.usecases.CriarPartidaUseCase;

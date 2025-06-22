@@ -1,4 +1,4 @@
-package br.com.futmatch.domain.models;
+package br.com.futmatch.domain.models.enums;
 
 public enum TipoPartida {
     PUBLICA,

@@ -1,21 +1,20 @@
 package br.com.futmatch.infrastructure.adapters.out.persistences.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "usuarios")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsuarioEntity {
+public class UsuarioEntity extends BaseEntity
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

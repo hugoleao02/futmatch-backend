@@ -1,4 +1,4 @@
-package br.com.futmatch.application.dtos;
+package br.com.futmatch.application.dtos.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

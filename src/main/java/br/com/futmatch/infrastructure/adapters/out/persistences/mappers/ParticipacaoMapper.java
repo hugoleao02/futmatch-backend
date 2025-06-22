@@ -11,6 +11,6 @@ public interface ParticipacaoMapper {
     
     ParticipacaoEntity toEntity(Participacao participacao);
     
-    @Mapping(target = "partida", ignore = true) // Evita referência circular apenas na leitura
+    @Mapping(target = "partida", ignore = true)
     Participacao toDomain(ParticipacaoEntity entity);
 } 

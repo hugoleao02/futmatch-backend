@@ -1,8 +1,8 @@
 package br.com.futmatch.application.services;
 
-import br.com.futmatch.application.dtos.PartidaRequest;
-import br.com.futmatch.application.dtos.PartidaResponse;
-import br.com.futmatch.application.dtos.PartidaUpdateRequest;
+import br.com.futmatch.application.dtos.requests.PartidaRequest;
+import br.com.futmatch.application.dtos.responses.PartidaResponse;
+import br.com.futmatch.application.dtos.requests.PartidaUpdateRequest;
 import br.com.futmatch.application.usecases.AtualizarPartidaUseCase;
 import br.com.futmatch.application.usecases.BuscarPartidaPorIdUseCase;
 import br.com.futmatch.application.usecases.CriarPartidaUseCase;
@@ -10,8 +10,13 @@ import br.com.futmatch.application.usecases.ListarPartidasUseCase;
 import br.com.futmatch.domain.exception.PartidaNotFoundException;
 import br.com.futmatch.domain.exception.UsuarioNotFoundException;
 import br.com.futmatch.domain.models.*;
+import br.com.futmatch.domain.models.enums.Esporte;
+import br.com.futmatch.domain.models.enums.StatusParticipacao;
+import br.com.futmatch.domain.models.enums.TipoPartida;
 import br.com.futmatch.domain.ports.PartidaRepositoryPort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
+import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.ParticipacaoMapper;
+import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,53 +34,39 @@ public class PartidaApplicationService implements
 
     private final PartidaRepositoryPort partidaRepositoryPort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
+    private final PartidaMapper partidaMapper;
 
     @Override
     public PartidaResponse criarPartida(PartidaRequest request, Long criadorId) {
-        // Validações de negócio adicionais
+
         validarDadosPartida(request);
-        
-        // Buscar o usuário criador
+
         Usuario criador = usuarioRepositoryPort.findById(criadorId)
                 .orElseThrow(() -> new UsuarioNotFoundException("Usuário não encontrado com ID: " + criadorId));
-        
-        Partida partida = Partida.builder()
-                .nome(request.getNome())
-                .esporte(Esporte.valueOf(request.getEsporte().toUpperCase()))
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .dataHora(request.getDataHora())
-                .totalJogadores(request.getTotalJogadores())
-                .tipoPartida(TipoPartida.valueOf(request.getTipoPartida().toUpperCase()))
-                .criador(criador)
-                .build();
-        
-        // Adicionar o criador como participante confirmado
-        Participacao participacaoCriador = Participacao.builder()
-                .usuario(criador)
-                .partida(partida)
-                .status(StatusParticipacao.CONFIRMADO)
-                .dataParticipacao(LocalDateTime.now())
-                .build();
-        
+
+
+        Partida partida = partidaMapper.toDomain(request);
+
+        var participacaoCriador = new Participacao();
+        participacaoCriador.setUsuario(criador);
+        participacaoCriador.setPartida(partida);
+        participacaoCriador.setStatus(StatusParticipacao.CONFIRMADO);
+        participacaoCriador.setDataParticipacao(LocalDateTime.now());
+
         partida.adicionarParticipante(participacaoCriador);
-        
-        // Salvar a partida
+
         Partida partidaSalva = partidaRepositoryPort.save(partida);
-        
-        // Mapear para response
-        return mapearParaResponse(partidaSalva);
+
+        return partidaMapper.toResponse(partidaSalva);
     }
     
     private void validarDadosPartida(PartidaRequest request) {
-        // Validar enum Esporte
         try {
             Esporte.valueOf(request.getEsporte().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Esporte inválido: " + request.getEsporte());
         }
-        
-        // Validar enum TipoPartida
+
         try {
             TipoPartida.valueOf(request.getTipoPartida().toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -87,42 +78,18 @@ public class PartidaApplicationService implements
             throw new IllegalArgumentException("Futsal permite no máximo 10 jogadores");
         }
     }
-    
-    private PartidaResponse mapearParaResponse(Partida partida) {
-        long participantesConfirmados = partida.getParticipantes().stream()
-                .filter(p -> p.getStatus() == StatusParticipacao.CONFIRMADO)
-                .count();
-        
-        return PartidaResponse.builder()
-                .id(partida.getId())
-                .nome(partida.getNome())
-                .esporte(partida.getEsporte().name())
-                .latitude(partida.getLatitude())
-                .longitude(partida.getLongitude())
-                .dataHora(partida.getDataHora())
-                .totalJogadores(partida.getTotalJogadores())
-                .tipoPartida(partida.getTipoPartida().name())
-                .criadorId(partida.getCriador().getId())
-                .criadorNome(partida.getCriador().getNome())
-                .participantesConfirmados((int) participantesConfirmados)
-                .build();
-    }
 
     @Override
     public PartidaResponse atualizarPartida(Long id, PartidaUpdateRequest request, Long usuarioId) {
-        // Buscar a partida existente
         Partida partida = partidaRepositoryPort.findById(id)
                 .orElseThrow(() -> new PartidaNotFoundException("Partida não encontrada com ID: " + id));
 
-        // Verificar se o usuário é o criador da partida
         if (!partida.getCriador().getId().equals(usuarioId)) {
             throw new IllegalArgumentException("Apenas o criador da partida pode atualizá-la");
         }
 
-        // Validar dados da atualização
         validarDadosAtualizacao(request);
 
-        // Atualizar campos não nulos
         if (request.getNome() != null) {
             partida.setNome(request.getNome());
         }
@@ -145,11 +112,9 @@ public class PartidaApplicationService implements
             partida.setTipoPartida(TipoPartida.valueOf(request.getTipoPartida().toUpperCase()));
         }
 
-        // Salvar atualizações
         Partida partidaAtualizada = partidaRepositoryPort.update(partida);
 
-        // Mapear para response
-        return mapearParaResponse(partidaAtualizada);
+        return partidaMapper.toResponse(partidaAtualizada);
     }
 
     private void validarDadosAtualizacao(PartidaUpdateRequest request) {
@@ -180,7 +145,7 @@ public class PartidaApplicationService implements
     public List<PartidaResponse> listarPartidas() {
         List<Partida> partidas = partidaRepositoryPort.findAll();
         return partidas.stream()
-                .map(this::mapearParaResponse)
+                .map(partidaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -188,6 +153,6 @@ public class PartidaApplicationService implements
     public PartidaResponse buscarPartidaPorId(Long id) {
         Partida partida = partidaRepositoryPort.findById(id)
                 .orElseThrow(() -> new PartidaNotFoundException("Partida não encontrada com ID: " + id));
-        return mapearParaResponse(partida);
+        return partidaMapper.toResponse(partida);
     }
 } 
