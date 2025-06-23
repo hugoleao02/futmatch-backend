@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 
-@Builder
 public class Participacao {
     private Long id;
     private Usuario usuario;

@@ -99,14 +99,13 @@ public class PartidaApplicationService implements
 
     private void aplicarAtualizacoesNaPartida(Partida partida, PartidaUpdateRequest request) {
         if (request.getNome() != null) partida.setNome(request.getNome());
-        if (request.getEsporte() != null)
-            partida.setEsporte(Esporte.valueOf(request.getEsporte().toUpperCase()));
+        if (request.getEsporte() != null) partida.setEsporte(Esporte.valueOf(request.getEsporte().toUpperCase()));
         if (request.getLatitude() != null) partida.setLatitude(request.getLatitude());
         if (request.getLongitude() != null) partida.setLongitude(request.getLongitude());
         if (request.getDataHora() != null) partida.setDataHora(request.getDataHora());
         if (request.getTotalJogadores() != null) partida.setTotalJogadores(request.getTotalJogadores());
-        if (request.getTipoPartida() != null)
-            partida.setTipoPartida(TipoPartida.valueOf(request.getTipoPartida().toUpperCase()));
+        if (request.getTipoPartida() != null) partida.setTipoPartida(TipoPartida.valueOf(request.getTipoPartida()
+                .toUpperCase()));
     }
 
     private void validarDadosPartida(PartidaRequest request) {
