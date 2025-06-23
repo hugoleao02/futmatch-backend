@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,31 +41,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors().and()
-            .csrf(csrf -> csrf.disable())
-            .headers(headers -> headers
-                .xssProtection(xss -> xss.disable())
-                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none';"))
-                .frameOptions(frame -> frame.deny())
-                .httpStrictTransportSecurity(hsts -> hsts
-                    .includeSubDomains(true)
-                    .maxAgeInSeconds(31536000)
-                    .preload(true)
-                )
-            )
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**",
-                                 "/api/swagger-ui/**",
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/swagger-ui/**",
                                  "/api/v3/api-docs/**",
                                  "/api/swagger-resources/**",
-                                 "/api/swagger-resources",
-                                 "/api/configuration/ui",
-                                 "/api/configuration/security",
-                                 "/api/webjars/**",
-                                 "/api/v3/api-docs").permitAll()
+                                 "/api/webjars/**").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -81,12 +69,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]")); // Permite qualquer porta do localhost
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -101,6 +87,11 @@ public class SecurityConfig {
                                           HttpServletResponse response, 
                                           FilterChain filterChain) throws ServletException, IOException {
                 
+                if (request.getRequestURI().startsWith("/actuator/health")) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                
                 String ip = request.getRemoteAddr();
                 Bucket bucket = buckets.computeIfAbsent(ip, k -> createNewBucket());
 
@@ -108,7 +99,7 @@ public class SecurityConfig {
                     filterChain.doFilter(request, response);
                 } else {
                     response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                    response.getWriter().write("Limite de requisições excedido. Tente novamente mais tarde.");
+                    response.getWriter().write("Rate limit exceeded");
                 }
             }
         };
@@ -116,7 +107,7 @@ public class SecurityConfig {
 
     private Bucket createNewBucket() {
         Bandwidth limit = Bandwidth.simple(100, Duration.ofMinutes(1));
-        return Bucket4j.builder()
+        return Bucket.builder()
                 .addLimit(limit)
                 .build();
     }

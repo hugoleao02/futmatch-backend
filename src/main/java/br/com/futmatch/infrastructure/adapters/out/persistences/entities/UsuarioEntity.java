@@ -10,15 +10,9 @@ import java.util.Set;
 @Entity
 @Table(name = "usuarios")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsuarioEntity extends BaseEntity
-{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
+public class UsuarioEntity extends BaseEntity {
     @Column(nullable = false)
     private String nome;
     
@@ -33,6 +27,5 @@ public class UsuarioEntity extends BaseEntity
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
     @Column(name = "role")
-    @Builder.Default
     private Set<String> roles = new HashSet<>();
 } 

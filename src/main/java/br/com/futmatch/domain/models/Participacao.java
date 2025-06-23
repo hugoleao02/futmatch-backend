@@ -28,6 +28,13 @@ public class Participacao {
         this.dataParticipacao = dataParticipacao;
     }
 
+    public Participacao(Usuario criador, Partida partida, StatusParticipacao statusParticipacao, LocalDateTime now) {
+        this.usuario = criador;
+        this.partida = partida;
+        this.status = statusParticipacao;
+        this.dataParticipacao = now;
+    }
+
     public Long getId() {
         return id;
     }

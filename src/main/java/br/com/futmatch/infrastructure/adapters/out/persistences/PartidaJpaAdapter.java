@@ -24,9 +24,8 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     private final PartidaMapper partidaMapper;
 
     @Override
-    @CacheEvict(value = "partidas", allEntries = true)
     public Partida save(Partida partida) {
-        PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
+        PartidaEntity entity = partidaMapper.toEntity(partida);
         PartidaEntity savedEntity = partidaSpringRepository.save(entity);
         return partidaMapper.toDomain(savedEntity);
     }
@@ -41,7 +40,7 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     @Override
     @CacheEvict(value = "partidas", allEntries = true)
     public Partida update(Partida partida) {
-        PartidaEntity entity = partidaMapper.toEntityWithParticipantes(partida);
+        PartidaEntity entity = partidaMapper.toEntity(partida);
         PartidaEntity updatedEntity = partidaSpringRepository.save(entity);
         return partidaMapper.toDomain(updatedEntity);
     }

@@ -1,5 +1,6 @@
 package br.com.futmatch.infrastructure.adapters.out.persistences.mappers;
 
+import br.com.futmatch.application.dtos.requests.PartidaRequest;
 import br.com.futmatch.application.dtos.responses.PartidaResponse;
 import br.com.futmatch.domain.models.Participacao;
 import br.com.futmatch.domain.models.Partida;
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {UsuarioMapper.class, ParticipacaoMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {UsuarioMapper.class, ParticipacaoMapper.class})
 @Component
 public interface PartidaMapper {
 
@@ -31,7 +33,7 @@ public interface PartidaMapper {
     @Mapping(target = "participantes", ignore = true)
     @Mapping(source = "esporte", target = "esporte", qualifiedByName = "stringToEsporte")
     @Mapping(source = "tipoPartida", target = "tipoPartida", qualifiedByName = "stringToTipoPartida")
-    Partida toDomain(br.com.futmatch.application.dtos.requests.PartidaRequest request);
+    Partida toDomain(PartidaRequest request);
 
     @Mapping(source = "criador.id", target = "criadorId")
     @Mapping(source = "criador.nome", target = "criadorNome")
@@ -80,6 +82,7 @@ public interface PartidaMapper {
     default String tipoPartidaEnumToString(TipoPartida tipoPartida) {
         return tipoPartida != null ? tipoPartida.name() : null;
     }
+
     @Named("calcularParticipantesConfirmados")
     default Integer calcularParticipantesConfirmados(List<Participacao> participantes) {
         if (participantes == null) {
@@ -89,4 +92,5 @@ public interface PartidaMapper {
                 .filter(p -> p.getStatus() == StatusParticipacao.CONFIRMADO)
                 .count();
     }
+
 }

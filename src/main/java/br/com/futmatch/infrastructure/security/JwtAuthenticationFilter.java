@@ -32,6 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // Verifica se é um endpoint que não precisa de autenticação
+        if (isPublicEndpoint(request)) {
+            log.debug("Endpoint público detectado: {}", request.getRequestURI());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = extractTokenFromRequest(request);
         log.debug("Token extraído: {}", token != null ? token.substring(0, Math.min(30, token.length())) + "..." : "null");
 
@@ -57,15 +64,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("Autenticação definida com sucesso");
                 } else {
                     log.warn("Usuário não encontrado para email: {}", email);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Usuário não encontrado ou não autorizado");
+                    return;
                 }
             } catch (Exception e) {
                 log.error("Erro ao processar token: {}", e.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token inválido ou erro de autenticação");
+                return;
             }
         } else {
-            log.warn("Token inválido ou nulo");
+            log.warn("Token inválido ou nulo para endpoint protegido: {}", request.getRequestURI());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido ou ausente");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        return requestURI.startsWith("/api/auth/") ||
+               requestURI.startsWith("/api/swagger-ui/") ||
+               requestURI.startsWith("/api/v3/api-docs") ||
+               requestURI.startsWith("/api/swagger-resources") ||
+               requestURI.startsWith("/api/configuration/") ||
+               requestURI.startsWith("/api/webjars/");
     }
 
     private String extractTokenFromRequest(HttpServletRequest request) {

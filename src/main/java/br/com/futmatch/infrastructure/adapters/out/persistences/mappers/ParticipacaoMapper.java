@@ -9,6 +9,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {UsuarioMapper.class})
 public interface ParticipacaoMapper {
     
+    @Mapping(target = "partida", ignore = true)
     ParticipacaoEntity toEntity(Participacao participacao);
     
     @Mapping(target = "partida", ignore = true)
