@@ -1,10 +1,13 @@
 package br.com.futmatch.domain.models;
 
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
 
-
+@Getter
+@Setter
 public class Usuario extends BaseModel {
     private String nome;
     private String email;
@@ -35,45 +38,5 @@ public class Usuario extends BaseModel {
         super();
         this.roles = new HashSet<>();
         this.roles.add("ROLE_USER");
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public String getFotoPerfilUrl() {
-        return fotoPerfilUrl;
-    }
-
-    public void setFotoPerfilUrl(String fotoPerfilUrl) {
-        this.fotoPerfilUrl = fotoPerfilUrl;
-    }
-
-    public Set<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
     }
 }

@@ -2,11 +2,15 @@ package br.com.futmatch.domain.models;
 
 import br.com.futmatch.domain.models.enums.Esporte;
 import br.com.futmatch.domain.models.enums.TipoPartida;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class Partida extends BaseModel {
     private String nome;
     private Esporte esporte;
@@ -16,7 +20,6 @@ public class Partida extends BaseModel {
     private Integer totalJogadores;
     private TipoPartida tipoPartida;
     private Usuario criador;
-    private Sala sala;
 
     private List<Participacao> participantes = new ArrayList<>();
 
@@ -45,7 +48,7 @@ public class Partida extends BaseModel {
     }
 
     public Partida(String nome, Esporte esporte, Double latitude, Double longitude, LocalDateTime dataHora,
-                   Integer totalJogadores, TipoPartida tipoPartida, Usuario criador, Sala sala) {
+                   Integer totalJogadores, TipoPartida tipoPartida, Usuario criador) {
         super();
         this.nome = nome;
         this.esporte = esporte;
@@ -55,87 +58,6 @@ public class Partida extends BaseModel {
         this.totalJogadores = totalJogadores;
         this.tipoPartida = tipoPartida;
         this.criador = criador;
-        this.sala = sala;
         this.initializeTimestamps();
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public Esporte getEsporte() {
-        return esporte;
-    }
-
-    public void setEsporte(Esporte esporte) {
-        this.esporte = esporte;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public LocalDateTime getDataHora() {
-        return dataHora;
-    }
-
-    public void setDataHora(LocalDateTime dataHora) {
-        this.dataHora = dataHora;
-    }
-
-    public Integer getTotalJogadores() {
-        return totalJogadores;
-    }
-
-    public void setTotalJogadores(Integer totalJogadores) {
-        this.totalJogadores = totalJogadores;
-    }
-
-    public TipoPartida getTipoPartida() {
-        return tipoPartida;
-    }
-
-    public void setTipoPartida(TipoPartida tipoPartida) {
-        this.tipoPartida = tipoPartida;
-    }
-
-    public Usuario getCriador() {
-        return criador;
-    }
-
-    public void setCriador(Usuario criador) {
-        this.criador = criador;
-    }
-
-    public Sala getSala() {
-        return sala;
-    }
-
-    public void setSala(Sala sala) {
-        this.sala = sala;
-    }
-
-    public List<Participacao> getParticipantes() {
-        return participantes;
-    }
-
-    public void setParticipantes(List<Participacao> participantes) {
-        this.participantes = participantes;
     }
 }

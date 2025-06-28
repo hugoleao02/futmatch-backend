@@ -47,16 +47,33 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/swagger-ui/**",
-                                 "/api/v3/api-docs/**",
-                                 "/api/swagger-resources/**",
-                                 "/api/webjars/**").permitAll()
-                .requestMatchers("/actuator/health/**").permitAll()
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/swagger-resources/**",
+                    "/webjars/**",
+                    "/actuator/health/**"
+                ).permitAll()
+                .requestMatchers("/api/partidas/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/participacoes/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class);
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Acesso não autorizado\",\"message\":\"" + authException.getMessage() + "\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"Acesso negado\",\"message\":\"" + accessDeniedException.getMessage() + "\"}");
+                })
+            )
+            .addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -69,10 +86,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -87,7 +106,8 @@ public class SecurityConfig {
                                           HttpServletResponse response, 
                                           FilterChain filterChain) throws ServletException, IOException {
                 
-                if (request.getRequestURI().startsWith("/actuator/health")) {
+                if (request.getRequestURI().startsWith("/actuator/health") || 
+                    request.getRequestURI().startsWith("/api/auth/")) {
                     filterChain.doFilter(request, response);
                     return;
                 }

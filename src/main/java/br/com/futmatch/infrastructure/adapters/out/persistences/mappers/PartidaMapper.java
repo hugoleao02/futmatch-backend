@@ -7,20 +7,16 @@ import br.com.futmatch.domain.models.Partida;
 import br.com.futmatch.domain.models.enums.Esporte;
 import br.com.futmatch.domain.models.enums.StatusParticipacao;
 import br.com.futmatch.domain.models.enums.TipoPartida;
-import br.com.futmatch.infrastructure.adapters.out.persistences.entities.ParticipacaoEntity;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.PartidaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {UsuarioMapper.class, ParticipacaoMapper.class})
-@Component
 public interface PartidaMapper {
 
     @Mapping(target = "participantes", ignore = true)

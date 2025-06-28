@@ -11,7 +11,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtUtils {
@@ -22,30 +21,13 @@ public class JwtUtils {
     @Value("${app.jwt.expiration}")
     private int jwtExpirationMs;
 
-    @Value("${app.jwt.key-rotation-interval:86400000}") // 24 horas em milissegundos
-    private long keyRotationInterval;
-
-    private final Map<String, SecretKey> keyCache = new ConcurrentHashMap<>();
-    private long lastKeyRotation = System.currentTimeMillis();
-
     private Key getSigningKey() {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastKeyRotation > keyRotationInterval) {
-            keyCache.clear();
-            lastKeyRotation = currentTime;
-        }
-
-        String keyId = String.valueOf(currentTime / keyRotationInterval);
-        return keyCache.computeIfAbsent(keyId, k -> {
-            byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-            return Keys.hmacShaKeyFor(keyBytes);
-        });
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("keyId", String.valueOf(System.currentTimeMillis() / keyRotationInterval));
-        return createToken(claims, email);
+        return createToken(new HashMap<>(), email);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

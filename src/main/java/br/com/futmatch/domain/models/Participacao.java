@@ -1,9 +1,13 @@
 package br.com.futmatch.domain.models;
 
 import br.com.futmatch.domain.models.enums.StatusParticipacao;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
-
+@Getter
+@Setter
 public class Participacao extends BaseModel {
     private Usuario usuario;
     private Partida partida;
@@ -31,35 +35,4 @@ public class Participacao extends BaseModel {
         this.initializeTimestamps();
     }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public Partida getPartida() {
-        return partida;
-    }
-
-    public void setPartida(Partida partida) {
-        this.partida = partida;
-    }
-
-    public StatusParticipacao getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusParticipacao status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getDataParticipacao() {
-        return dataParticipacao;
-    }
-
-    public void setDataParticipacao(LocalDateTime dataParticipacao) {
-        this.dataParticipacao = dataParticipacao;
-    }
 }

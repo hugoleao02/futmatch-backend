@@ -32,6 +32,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        log.debug("Processando requisição para: {}", request.getRequestURI());
+        log.debug("Método HTTP: {}", request.getMethod());
+
         // Verifica se é um endpoint que não precisa de autenticação
         if (isPublicEndpoint(request)) {
             log.debug("Endpoint público detectado: {}", request.getRequestURI());
@@ -52,16 +55,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (usuarioOpt.isPresent()) {
                     Usuario usuario = usuarioOpt.get();
                     log.debug("Usuário encontrado: {}", usuario.getNome());
+                    log.debug("Roles do usuário: {}", usuario.getRoles());
                     
                     List<SimpleGrantedAuthority> authorities = usuario.getRoles().stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
 
+                    log.debug("Authorities criadas: {}", authorities);
+
                     UsernamePasswordAuthenticationToken authToken = 
                             new UsernamePasswordAuthenticationToken(usuario, null, authorities);
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.debug("Autenticação definida com sucesso");
+                    log.debug("Autenticação definida com sucesso para usuário: {}", usuario.getNome());
                 } else {
                     log.warn("Usuário não encontrado para email: {}", email);
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -69,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
             } catch (Exception e) {
-                log.error("Erro ao processar token: {}", e.getMessage());
+                log.error("Erro ao processar token: {}", e.getMessage(), e);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token inválido ou erro de autenticação");
                 return;
@@ -81,17 +87,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        log.debug("Continuando com o filtro para: {}", request.getRequestURI());
         filterChain.doFilter(request, response);
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         return requestURI.startsWith("/api/auth/") ||
-               requestURI.startsWith("/api/swagger-ui/") ||
-               requestURI.startsWith("/api/v3/api-docs") ||
-               requestURI.startsWith("/api/swagger-resources") ||
-               requestURI.startsWith("/api/configuration/") ||
-               requestURI.startsWith("/api/webjars/");
+               requestURI.startsWith("/swagger-ui/") ||
+               requestURI.equals("/swagger-ui.html") ||
+               requestURI.startsWith("/v3/api-docs") ||
+               requestURI.startsWith("/swagger-resources") ||
+               requestURI.startsWith("/webjars/") ||
+               requestURI.startsWith("/actuator/health") ||
+               requestURI.equals("/");
     }
 
     private String extractTokenFromRequest(HttpServletRequest request) {
