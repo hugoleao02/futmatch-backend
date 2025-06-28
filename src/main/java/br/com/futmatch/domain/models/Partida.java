@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Partida {
-    private Long id;
+public class Partida extends BaseModel {
     private String nome;
     private Esporte esporte;
     private Double latitude;
@@ -17,6 +16,7 @@ public class Partida {
     private Integer totalJogadores;
     private TipoPartida tipoPartida;
     private Usuario criador;
+    private Sala sala;
 
     private List<Participacao> participantes = new ArrayList<>();
 
@@ -28,11 +28,12 @@ public class Partida {
     }
 
     public Partida() {
+        super();
     }
 
     public Partida(Long id, String nome, Esporte esporte, Double latitude, Double longitude, LocalDateTime dataHora,
                    Integer totalJogadores, TipoPartida tipoPartida, Usuario criador) {
-        this.id = id;
+        super(id, null, null);
         this.nome = nome;
         this.esporte = esporte;
         this.latitude = latitude;
@@ -43,12 +44,19 @@ public class Partida {
         this.criador = criador;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public Partida(String nome, Esporte esporte, Double latitude, Double longitude, LocalDateTime dataHora,
+                   Integer totalJogadores, TipoPartida tipoPartida, Usuario criador, Sala sala) {
+        super();
+        this.nome = nome;
+        this.esporte = esporte;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.dataHora = dataHora;
+        this.totalJogadores = totalJogadores;
+        this.tipoPartida = tipoPartida;
+        this.criador = criador;
+        this.sala = sala;
+        this.initializeTimestamps();
     }
 
     public String getNome() {
@@ -113,6 +121,14 @@ public class Partida {
 
     public void setCriador(Usuario criador) {
         this.criador = criador;
+    }
+
+    public Sala getSala() {
+        return sala;
+    }
+
+    public void setSala(Sala sala) {
+        this.sala = sala;
     }
 
     public List<Participacao> getParticipantes() {
