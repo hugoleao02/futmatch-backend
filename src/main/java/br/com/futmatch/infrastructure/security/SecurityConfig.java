@@ -3,7 +3,6 @@ package br.com.futmatch.infrastructure.security;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -32,11 +31,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -92,7 +94,7 @@ public class SecurityConfig {
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -102,16 +104,16 @@ public class SecurityConfig {
     public OncePerRequestFilter rateLimitingFilter() {
         return new OncePerRequestFilter() {
             @Override
-            protected void doFilterInternal(HttpServletRequest request, 
-                                          HttpServletResponse response, 
+            protected void doFilterInternal(HttpServletRequest request,
+                                          HttpServletResponse response,
                                           FilterChain filterChain) throws ServletException, IOException {
-                
-                if (request.getRequestURI().startsWith("/actuator/health") || 
+
+                if (request.getRequestURI().startsWith("/actuator/health") ||
                     request.getRequestURI().startsWith("/api/auth/")) {
                     filterChain.doFilter(request, response);
                     return;
                 }
-                
+
                 String ip = request.getRemoteAddr();
                 Bucket bucket = buckets.computeIfAbsent(ip, k -> createNewBucket());
 
@@ -131,4 +133,4 @@ public class SecurityConfig {
                 .addLimit(limit)
                 .build();
     }
-} 
+}

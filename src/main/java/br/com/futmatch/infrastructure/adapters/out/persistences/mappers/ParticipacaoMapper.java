@@ -2,30 +2,45 @@ package br.com.futmatch.infrastructure.adapters.out.persistences.mappers;
 
 import br.com.futmatch.application.dtos.responses.ParticipacaoResponse;
 import br.com.futmatch.domain.models.Participacao;
+import br.com.futmatch.domain.models.enums.StatusParticipacao;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.ParticipacaoEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.Named;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {UsuarioMapper.class})
-public interface ParticipacaoMapper {
-    
-    @Mapping(target = "partida", ignore = true)
-    ParticipacaoEntity toEntity(Participacao participacao);
-    
-    @Mapping(target = "partida", ignore = true)
-    Participacao toDomain(ParticipacaoEntity entity);
-    
-    @Mapping(source = "usuario.id", target = "usuarioId")
-    @Mapping(source = "usuario.nome", target = "usuarioNome")
-    @Mapping(source = "partida.id", target = "partidaId")
-    @Mapping(source = "partida.nome", target = "partidaNome")
-    @Mapping(source = "status", target = "status", qualifiedByName = "statusEnumToString")
-    ParticipacaoResponse toResponse(Participacao participacao);
-    
-    @Named("statusEnumToString")
-    default String statusEnumToString(br.com.futmatch.domain.models.enums.StatusParticipacao status) {
-        return status != null ? status.name() : null;
+public class ParticipacaoMapper {
+
+    public ParticipacaoEntity toEntity(Participacao participacao) {
+        if (participacao == null) return null;
+        ParticipacaoEntity entity = new ParticipacaoEntity();
+        entity.setId(participacao.getId());
+        entity.setStatus(participacao.getStatus());
+        entity.setDataParticipacao(participacao.getDataParticipacao());
+        return entity;
     }
-} 
+
+    public Participacao toDomain(ParticipacaoEntity entity) {
+        if (entity == null) return null;
+        return new Participacao(
+                entity.getId(),
+                null, // usuario loaded separately
+                null, // partida loaded separately
+                entity.getStatus(),
+                entity.getDataParticipacao()
+        );
+    }
+
+    public ParticipacaoResponse toResponse(Participacao participacao) {
+        if (participacao == null) return null;
+        ParticipacaoResponse response = new ParticipacaoResponse();
+        response.setId(participacao.getId());
+        response.setStatus(participacao.getStatus() != null ? participacao.getStatus().name() : null);
+        response.setDataParticipacao(participacao.getDataParticipacao());
+        if (participacao.getUsuario() != null) {
+            response.setUsuarioId(participacao.getUsuario().getId());
+            response.setUsuarioNome(participacao.getUsuario().getNome());
+        }
+        if (participacao.getPartida() != null) {
+            response.setPartidaId(participacao.getPartida().getId());
+            response.setPartidaNome(participacao.getPartida().getNome());
+        }
+        return response;
+    }
+}

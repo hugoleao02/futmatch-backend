@@ -1,6 +1,5 @@
 package br.com.futmatch.infrastructure.adapters.out.persistences.mappers;
 
-import br.com.futmatch.application.dtos.requests.PartidaRequest;
 import br.com.futmatch.application.dtos.responses.PartidaResponse;
 import br.com.futmatch.domain.models.Participacao;
 import br.com.futmatch.domain.models.Partida;
@@ -15,59 +14,29 @@ import org.mapstruct.Named;
 
 import java.util.List;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {UsuarioMapper.class, ParticipacaoMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface PartidaMapper {
 
-    @Mapping(target = "participantes", ignore = true)
-    PartidaEntity toEntity(Partida partida);
-
-    Partida toDomain(PartidaEntity entity);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "criador", ignore = true)
-    @Mapping(target = "participantes", ignore = true)
-    @Mapping(source = "esporte", target = "esporte", qualifiedByName = "stringToEsporte")
-    @Mapping(source = "tipoPartida", target = "tipoPartida", qualifiedByName = "stringToTipoPartida")
-    Partida toDomain(PartidaRequest request);
-
-    @Mapping(source = "criador.id", target = "criadorId")
-    @Mapping(source = "criador.nome", target = "criadorNome")
-    @Mapping(source = "esporte", target = "esporte", qualifiedByName = "esporteEnumToString")
-    @Mapping(source = "tipoPartida", target = "tipoPartida", qualifiedByName = "tipoPartidaEnumToString")
+    @Mapping(target = "esporte", source = "esporte", qualifiedByName = "esporteEnumToString")
+    @Mapping(target = "tipoPartida", source = "tipoPartida", qualifiedByName = "tipoPartidaEnumToString")
     @Mapping(target = "participantesConfirmados", expression = "java(calcularParticipantesConfirmados(partida.getParticipantes()))")
+    @Mapping(target = "latitude", ignore = true)
+    @Mapping(target = "longitude", ignore = true)
     PartidaResponse toResponse(Partida partida);
 
-    // --- Métodos de Conversão Customizados (String para Enum) ---
-    // Usados para mapear String do DTO de Request para Enum do Modelo de Domínio.
-    // Anotados com @Named para serem referenciados nos @Mapping do MapStruct.
-    // Incluem validação de nulo/vazio e tratamento de exceção para valores inválidos.
-
-    @Named("stringToEsporte")
-    default Esporte stringToEsporte(String esporteString) {
-        if (esporteString == null || esporteString.trim().isEmpty()) {
-            throw new IllegalArgumentException("Esporte não pode ser nulo ou vazio.");
+    default PartidaResponse toResponseFull(Partida partida) {
+        if (partida == null) return null;
+        PartidaResponse response = toResponse(partida);
+        if (partida.getLocalizacao() != null) {
+            response.setLatitude(partida.getLocalizacao().latitude());
+            response.setLongitude(partida.getLocalizacao().longitude());
         }
-        try {
-            return Esporte.valueOf(esporteString.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Valor de Esporte inválido: " + esporteString);
+        if (partida.getCriador() != null) {
+            response.setCriadorId(partida.getCriador().getId());
+            response.setCriadorNome(partida.getCriador().getNome());
         }
+        return response;
     }
-
-    @Named("stringToTipoPartida")
-    default TipoPartida stringToTipoPartida(String tipoPartidaString) {
-        if (tipoPartidaString == null || tipoPartidaString.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tipo de Partida não pode ser nulo ou vazio.");
-        }
-        try {
-            return TipoPartida.valueOf(tipoPartidaString.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Valor de TipoPartida inválido: '" + tipoPartidaString + "'. Erro: " + e.getMessage());
-            throw new IllegalArgumentException("Valor de Tipo de Partida inválido: " + tipoPartidaString);
-        }
-    }
-
 
     @Named("esporteEnumToString")
     default String esporteEnumToString(Esporte esporte) {
@@ -81,12 +50,43 @@ public interface PartidaMapper {
 
     @Named("calcularParticipantesConfirmados")
     default Integer calcularParticipantesConfirmados(List<Participacao> participantes) {
-        if (participantes == null) {
-            return 0;
-        }
+        if (participantes == null) return 0;
         return (int) participantes.stream()
                 .filter(p -> p.getStatus() == StatusParticipacao.CONFIRMADO)
                 .count();
     }
 
+    default PartidaEntity toEntity(Partida partida) {
+        if (partida == null) return null;
+        PartidaEntity entity = new PartidaEntity();
+        entity.setId(partida.getId());
+        entity.setNome(partida.getNome());
+        entity.setEsporte(partida.getEsporte());
+        if (partida.getLocalizacao() != null) {
+            entity.setLatitude(partida.getLocalizacao().latitude());
+            entity.setLongitude(partida.getLocalizacao().longitude());
+        }
+        entity.setDataHora(partida.getDataHora());
+        entity.setTotalJogadores(partida.getTotalJogadores());
+        entity.setTipoPartida(partida.getTipoPartida());
+        return entity;
+    }
+
+    default Partida toDomain(PartidaEntity entity) {
+        if (entity == null) return null;
+        br.com.futmatch.domain.valueobjects.Localizacao localizacao = null;
+        if (entity.getLatitude() != null && entity.getLongitude() != null) {
+            localizacao = br.com.futmatch.domain.valueobjects.Localizacao.criadaPara(entity.getLatitude(), entity.getLongitude());
+        }
+        return new Partida(
+                entity.getId(),
+                entity.getNome(),
+                entity.getEsporte(),
+                localizacao,
+                entity.getDataHora(),
+                entity.getTotalJogadores(),
+                entity.getTipoPartida(),
+                null
+        );
+    }
 }

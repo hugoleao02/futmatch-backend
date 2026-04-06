@@ -5,15 +5,19 @@ import br.com.futmatch.domain.models.Usuario;
 import br.com.futmatch.domain.ports.TokenServicePort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class AuthenticationUtils {
 
     private final TokenServicePort tokenServicePort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
+
+    public AuthenticationUtils(TokenServicePort tokenServicePort,
+                               UsuarioRepositoryPort usuarioRepositoryPort) {
+        this.tokenServicePort = tokenServicePort;
+        this.usuarioRepositoryPort = usuarioRepositoryPort;
+    }
 
     public Usuario getUsuarioFromRequest(HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
@@ -33,4 +37,4 @@ public class AuthenticationUtils {
         }
         return null;
     }
-} 
+}

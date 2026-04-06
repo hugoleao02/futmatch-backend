@@ -5,17 +5,21 @@ import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.UsuarioEntity;
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.UsuarioMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.UsuarioSpringRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
 public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
 
     private final UsuarioSpringRepository usuarioSpringRepository;
     private final UsuarioMapper usuarioMapper;
+
+    public UsuarioJpaAdapter(UsuarioSpringRepository usuarioSpringRepository,
+                             UsuarioMapper usuarioMapper) {
+        this.usuarioSpringRepository = usuarioSpringRepository;
+        this.usuarioMapper = usuarioMapper;
+    }
 
     @Override
     public Usuario save(Usuario usuario) {
@@ -35,4 +39,4 @@ public class UsuarioJpaAdapter implements UsuarioRepositoryPort {
         return usuarioSpringRepository.findById(id)
                 .map(usuarioMapper::toDomain);
     }
-} 
+}

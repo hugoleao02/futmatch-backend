@@ -5,17 +5,19 @@ import br.com.futmatch.application.dtos.requests.LoginRequest;
 import br.com.futmatch.application.dtos.requests.RegisterRequest;
 import br.com.futmatch.application.usecases.AutenticacaoUseCase;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AutenticacaoUseCase autenticacaoUseCase;
+
+    public AuthController(AutenticacaoUseCase autenticacaoUseCase) {
+        this.autenticacaoUseCase = autenticacaoUseCase;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -28,4 +30,4 @@ public class AuthController {
         AuthResponse response = autenticacaoUseCase.loginUser(request);
         return ResponseEntity.ok(response);
     }
-} 
+}

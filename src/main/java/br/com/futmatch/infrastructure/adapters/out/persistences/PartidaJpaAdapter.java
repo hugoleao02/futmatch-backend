@@ -5,7 +5,6 @@ import br.com.futmatch.domain.ports.PartidaRepositoryPort;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.PartidaEntity;
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.PartidaSpringRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -18,11 +17,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class PartidaJpaAdapter implements PartidaRepositoryPort {
 
     private final PartidaSpringRepository partidaSpringRepository;
     private final PartidaMapper partidaMapper;
+
+    public PartidaJpaAdapter(PartidaSpringRepository partidaSpringRepository,
+                             PartidaMapper partidaMapper) {
+        this.partidaSpringRepository = partidaSpringRepository;
+        this.partidaMapper = partidaMapper;
+    }
 
     @Override
     public Partida save(Partida partida) {
@@ -97,4 +101,4 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
         return partidaSpringRepository.findByEsporteAndTipoPartida(esporte, tipoPartida, pageable)
             .map(partidaMapper::toDomain);
     }
-} 
+}

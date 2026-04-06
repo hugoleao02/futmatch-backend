@@ -10,16 +10,22 @@ import br.com.futmatch.domain.models.Usuario;
 import br.com.futmatch.domain.ports.PasswordEncoderPort;
 import br.com.futmatch.domain.ports.TokenServicePort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AutenticacaoApplicationService implements AutenticacaoUseCase {
 
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final PasswordEncoderPort passwordEncoderPort;
     private final TokenServicePort tokenServicePort;
+
+    public AutenticacaoApplicationService(UsuarioRepositoryPort usuarioRepositoryPort,
+                                          PasswordEncoderPort passwordEncoderPort,
+                                          TokenServicePort tokenServicePort) {
+        this.usuarioRepositoryPort = usuarioRepositoryPort;
+        this.passwordEncoderPort = passwordEncoderPort;
+        this.tokenServicePort = tokenServicePort;
+    }
 
     @Override
     public AuthResponse registerUser(RegisterRequest request) {
@@ -32,6 +38,7 @@ public class AutenticacaoApplicationService implements AutenticacaoUseCase {
             request.getEmail(),
             passwordEncoderPort.encode(request.getSenha())
         );
+        // Note: uses existing String-based constructor for adapter-level service
 
         usuario = usuarioRepositoryPort.save(usuario);
         String token = tokenServicePort.generateToken(usuario.getEmail());
@@ -62,4 +69,4 @@ public class AutenticacaoApplicationService implements AutenticacaoUseCase {
             .nome(usuario.getNome())
             .build();
     }
-} 
+}

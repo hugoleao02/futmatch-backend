@@ -14,9 +14,9 @@ import br.com.futmatch.domain.models.enums.TipoPartida;
 import br.com.futmatch.domain.ports.PartidaRepositoryPort;
 import br.com.futmatch.domain.ports.ParticipacaoRepositoryPort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
-import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
+import br.com.futmatch.domain.valueobjects.Localizacao;
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.ParticipacaoMapper;
-import lombok.RequiredArgsConstructor;
+import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class PartidaApplicationService implements
         CriarPartidaUseCase,
         AtualizarPartidaUseCase,
         ListarPartidasUseCase,
         BuscarPartidaPorIdUseCase,
+        BuscarPartidasComFiltroUseCase,
         ParticiparPartidaUseCase,
         CancelarParticipacaoUseCase,
         ListarPartidasFuturasUseCase,
@@ -42,33 +42,55 @@ public class PartidaApplicationService implements
     private final UsuarioRepositoryPort usuarioRepositoryPort;
     private final ParticipacaoRepositoryPort participacaoRepositoryPort;
     private final PartidaMapper partidaMapper;
-    private final ParticipacaoMapper participacaoMapper;
+    private final ParticipacaoMapper participacaoMapper = new ParticipacaoMapper();
+
+    public PartidaApplicationService(PartidaRepositoryPort partidaRepositoryPort,
+                                     UsuarioRepositoryPort usuarioRepositoryPort,
+                                     ParticipacaoRepositoryPort participacaoRepositoryPort,
+                                     PartidaMapper partidaMapper) {
+        this.partidaRepositoryPort = partidaRepositoryPort;
+        this.usuarioRepositoryPort = usuarioRepositoryPort;
+        this.participacaoRepositoryPort = participacaoRepositoryPort;
+        this.partidaMapper = partidaMapper;
+    }
 
     @Override
     public PartidaResponse criarPartida(PartidaRequest request, Long criadorId) {
         validarDadosPartida(request);
 
         Usuario criador = buscarUsuarioPorId(criadorId);
-        Partida partida = partidaMapper.toDomain(request);
+        Localizacao localizacao = new Localizacao(request.getLatitude(), request.getLongitude());
 
-        Participacao participacaoCriador = criarParticipacaoCriador(criador, partida);
-        partida.adicionarParticipante(participacaoCriador);
-        partida.setCriador(criador);
+        Esporte esporte = Esporte.valueOf(request.getEsporte().toUpperCase());
+        TipoPartida tipoPartida = TipoPartida.valueOf(request.getTipoPartida().toUpperCase());
+
+        Partida partida = new Partida(
+                request.getNome(),
+                esporte,
+                localizacao,
+                request.getDataHora(),
+                request.getTotalJogadores(),
+                tipoPartida,
+                criador
+        );
 
         Partida partidaSalva = partidaRepositoryPort.save(partida);
-        return partidaMapper.toResponse(partidaSalva);
+        return partidaMapper.toResponseFull(partidaSalva);
     }
 
     @Override
     public PartidaResponse atualizarPartida(Long id, PartidaUpdateRequest request, Long usuarioId) {
         Partida partida = buscarPartidaPorIdOuErro(id);
-        validarPermissaoDoCriador(partida, usuarioId);
+        partida.validarAtualizacaoPor(partida.getCriador());
+        // Note: we need to re-create the usuario for permission check
+        Usuario usuario = buscarUsuarioPorId(usuarioId);
+        partida.validarAtualizacaoPor(usuario);
 
         validarDadosAtualizacao(request);
         aplicarAtualizacoesNaPartida(partida, request);
 
         Partida atualizada = partidaRepositoryPort.update(partida);
-        return partidaMapper.toResponse(atualizada);
+        return partidaMapper.toResponseFull(atualizada);
     }
 
     @Override
@@ -80,23 +102,44 @@ public class PartidaApplicationService implements
 
     @Override
     public PartidaResponse buscarPartidaPorId(Long id) {
-        return partidaMapper.toResponse(buscarPartidaPorIdOuErro(id));
+        return partidaMapper.toResponseFull(buscarPartidaPorIdOuErro(id));
+    }
+
+    @Override
+    public Page<PartidaResponse> buscarPartidasComFiltro(br.com.futmatch.application.dtos.requests.PartidaFiltroRequest filtro) {
+        // Use existing repository methods for filtering
+        Pageable pageable = getPageable(filtro);
+        if (filtro.getEsporte() != null && filtro.getTipoPartida() != null) {
+            return partidaRepositoryPort.findByEsporteAndTipoPartida(filtro.getEsporte(), filtro.getTipoPartida(), pageable)
+                .map(partidaMapper::toResponse);
+        } else if (filtro.getEsporte() != null) {
+            return partidaRepositoryPort.findByEsporte(filtro.getEsporte(), pageable)
+                .map(partidaMapper::toResponse);
+        } else if (filtro.getTipoPartida() != null) {
+            return partidaRepositoryPort.findByTipoPartida(filtro.getTipoPartida(), pageable)
+                .map(partidaMapper::toResponse);
+        } else if (filtro.getApenasFuturas() != null && filtro.getApenasFuturas()) {
+            return partidaRepositoryPort.findAllFuturas(pageable)
+                .map(partidaMapper::toResponse);
+        }
+        return partidaRepositoryPort.findAllFuturas(pageable)
+            .map(partidaMapper::toResponse);
     }
 
     @Override
     public ParticipacaoResponse participarPartida(Long partidaId, Long usuarioId) {
         Partida partida = buscarPartidaPorIdOuErro(partidaId);
         Usuario usuario = buscarUsuarioPorId(usuarioId);
-        
+
         validarParticipacao(partida, usuarioId);
-        
+
         Participacao participacao = new Participacao(
                 usuario,
                 partida,
                 StatusParticipacao.PENDENTE,
                 LocalDateTime.now()
         );
-        
+
         Participacao participacaoSalva = participacaoRepositoryPort.save(participacao);
         return participacaoMapper.toResponse(participacaoSalva);
     }
@@ -104,8 +147,13 @@ public class PartidaApplicationService implements
     @Override
     public void cancelarParticipacao(Long partidaId, Long usuarioId) {
         Participacao participacao = buscarParticipacaoOuErro(partidaId, usuarioId);
-        validarPermissaoCancelamento(participacao, usuarioId);
-        
+
+        Usuario usuario = participacao.getUsuario();
+        Usuario criador = participacao.getPartida().getCriador();
+        if (!usuario.getId().equals(usuarioId) && !criador.getId().equals(usuarioId)) {
+            throw new IllegalArgumentException("Apenas o participante ou o criador da partida pode cancelar a participação");
+        }
+
         participacaoRepositoryPort.delete(participacao);
     }
 
@@ -118,12 +166,12 @@ public class PartidaApplicationService implements
     @Override
     public void excluirPartida(Long partidaId, Long criadorId) {
         Partida partida = buscarPartidaPorIdOuErro(partidaId);
-        validarPermissaoDoCriador(partida, criadorId);
-        
+        validaPermissaoDoCriador(partida, criadorId);
+
         // Excluir todas as participações da partida
         List<Participacao> participacoes = participacaoRepositoryPort.findByPartidaId(partidaId);
         participacoes.forEach(participacaoRepositoryPort::delete);
-        
+
         // Excluir a partida
         partidaRepositoryPort.delete(partida);
     }
@@ -131,25 +179,26 @@ public class PartidaApplicationService implements
     @Override
     public ParticipacaoResponse aprovarParticipacao(Long partidaId, Long participanteId, Long criadorId) {
         Partida partida = buscarPartidaPorIdOuErro(partidaId);
-        validarPermissaoDoCriador(partida, criadorId);
-        
+        validaPermissaoDoCriador(partida, criadorId);
+
         Participacao participacao = buscarParticipacaoOuErro(partidaId, participanteId);
         validarAprovacaoParticipacao(partida, participacao);
-        
-        participacao.setStatus(StatusParticipacao.CONFIRMADO);
+
+        participacao.confirmar();
         Participacao participacaoAtualizada = participacaoRepositoryPort.save(participacao);
-        
+
         return participacaoMapper.toResponse(participacaoAtualizada);
     }
 
     @Override
     public ParticipacaoResponse rejeitarParticipacao(Long partidaId, Long participanteId, Long criadorId) {
         Partida partida = buscarPartidaPorIdOuErro(partidaId);
-        validarPermissaoDoCriador(partida, criadorId);
-        
+        validaPermissaoDoCriador(partida, criadorId);
+
         Participacao participacao = buscarParticipacaoOuErro(partidaId, participanteId);
-        participacaoRepositoryPort.delete(participacao);
-        
+        participacao.rejeitar();
+        participacaoRepositoryPort.save(participacao);
+
         return participacaoMapper.toResponse(participacao);
     }
 
@@ -168,16 +217,9 @@ public class PartidaApplicationService implements
                 .orElseThrow(() -> new IllegalArgumentException("Participação não encontrada"));
     }
 
-    private void validarPermissaoDoCriador(Partida partida, Long usuarioId) {
+    private void validaPermissaoDoCriador(Partida partida, Long usuarioId) {
         if (!partida.getCriador().getId().equals(usuarioId)) {
             throw new IllegalArgumentException("Apenas o criador da partida pode realizar esta ação");
-        }
-    }
-
-    private void validarPermissaoCancelamento(Participacao participacao, Long usuarioId) {
-        if (!participacao.getUsuario().getId().equals(usuarioId) && 
-            !participacao.getPartida().getCriador().getId().equals(usuarioId)) {
-            throw new IllegalArgumentException("Apenas o participante ou o criador da partida pode cancelar a participação");
         }
     }
 
@@ -186,37 +228,27 @@ public class PartidaApplicationService implements
         if (participacaoRepositoryPort.existsByUsuarioAndPartida(usuarioId, partida.getId())) {
             throw new IllegalArgumentException("Usuário já participa desta partida");
         }
-        
+
         // Verificar se a partida não está cheia
         long participantesConfirmados = participacaoRepositoryPort.countByPartidaAndStatus(partida.getId(), StatusParticipacao.CONFIRMADO);
         if (participantesConfirmados >= partida.getTotalJogadores()) {
             throw new IllegalArgumentException("Partida já está com o número máximo de jogadores");
         }
-        
+
         // Verificar se a partida não é passada
-        if (partida.getDataHora().isBefore(LocalDateTime.now())) {
+        if (partida.isJogosJaRealizada()) {
             throw new IllegalArgumentException("Não é possível participar de uma partida que já aconteceu");
         }
     }
 
-    private Participacao criarParticipacaoCriador(Usuario criador, Partida partida) {
-        return new Participacao(
-                criador,
-                partida,
-                StatusParticipacao.CONFIRMADO,
-                LocalDateTime.now()
-        );
-    }
-
     private void aplicarAtualizacoesNaPartida(Partida partida, PartidaUpdateRequest request) {
-        if (request.getNome() != null) partida.setNome(request.getNome());
-        if (request.getEsporte() != null) partida.setEsporte(Esporte.valueOf(request.getEsporte().toUpperCase()));
-        if (request.getLatitude() != null) partida.setLatitude(request.getLatitude());
-        if (request.getLongitude() != null) partida.setLongitude(request.getLongitude());
-        if (request.getDataHora() != null) partida.setDataHora(request.getDataHora());
-        if (request.getTotalJogadores() != null) partida.setTotalJogadores(request.getTotalJogadores());
-        if (request.getTipoPartida() != null) partida.setTipoPartida(TipoPartida.valueOf(request.getTipoPartida()
-                .toUpperCase()));
+        if (request.getNome() != null) partida.atualizarNome(request.getNome());
+        if (request.getEsporte() != null) partida.atualizarEsporte(Esporte.valueOf(request.getEsporte().toUpperCase()));
+        if (request.getLatitude() != null && request.getLongitude() != null)
+            partida.atualizarLocalizacao(new Localizacao(request.getLatitude(), request.getLongitude()));
+        if (request.getDataHora() != null) partida.atualizarDataHora(request.getDataHora());
+        if (request.getTotalJogadores() != null) partida.atualizarTotalJogadores(request.getTotalJogadores());
+        if (request.getTipoPartida() != null) partida.atualizarTipoPartida(TipoPartida.valueOf(request.getTipoPartida().toUpperCase()));
     }
 
     private void validarDadosPartida(PartidaRequest request) {
@@ -232,7 +264,8 @@ public class PartidaApplicationService implements
         if (request.getTipoPartida() != null)
             validarEnum(TipoPartida.class, request.getTipoPartida(), "Tipo de partida inválido: ");
 
-        validarLimiteJogadoresPorEsporte(request.getEsporte(), request.getTotalJogadores());
+        if (request.getEsporte() != null && request.getTotalJogadores() != null)
+            validarLimiteJogadoresPorEsporte(request.getEsporte(), request.getTotalJogadores());
     }
 
     private <E extends Enum<E>> void validarEnum(Class<E> enumClass, String valor, String mensagemErro) {
@@ -253,11 +286,17 @@ public class PartidaApplicationService implements
         if (participacao.getStatus() != StatusParticipacao.PENDENTE) {
             throw new IllegalArgumentException("Apenas participações pendentes podem ser aprovadas");
         }
-        
+
         // Verificar se a partida não está cheia
         long participantesConfirmados = participacaoRepositoryPort.countByPartidaAndStatus(partida.getId(), StatusParticipacao.CONFIRMADO);
         if (participantesConfirmados >= partida.getTotalJogadores()) {
             throw new IllegalArgumentException("Partida já está com o número máximo de jogadores");
         }
+    }
+
+    private Pageable getPageable(br.com.futmatch.application.dtos.requests.PartidaFiltroRequest filtro) {
+        int page = filtro.getPage() != null ? filtro.getPage() : 0;
+        int size = filtro.getSize() != null ? filtro.getSize() : 10;
+        return Pageable.ofSize(size).withPage(page);
     }
 }

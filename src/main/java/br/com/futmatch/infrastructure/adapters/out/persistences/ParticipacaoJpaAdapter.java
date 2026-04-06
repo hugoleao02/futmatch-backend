@@ -6,7 +6,6 @@ import br.com.futmatch.domain.ports.ParticipacaoRepositoryPort;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.ParticipacaoEntity;
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.ParticipacaoMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.ParticipacaoSpringRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,11 +13,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class ParticipacaoJpaAdapter implements ParticipacaoRepositoryPort {
 
     private final ParticipacaoSpringRepository participacaoSpringRepository;
-    private final ParticipacaoMapper participacaoMapper;
+    private final ParticipacaoMapper participacaoMapper = new ParticipacaoMapper();
+
+    public ParticipacaoJpaAdapter(ParticipacaoSpringRepository participacaoSpringRepository) {
+        this.participacaoSpringRepository = participacaoSpringRepository;
+    }
 
     @Override
     public Participacao save(Participacao participacao) {
@@ -62,4 +64,4 @@ public class ParticipacaoJpaAdapter implements ParticipacaoRepositoryPort {
     public long countByPartidaAndStatus(Long partidaId, StatusParticipacao status) {
         return participacaoSpringRepository.countByPartidaAndStatus(partidaId, status);
     }
-} 
+}

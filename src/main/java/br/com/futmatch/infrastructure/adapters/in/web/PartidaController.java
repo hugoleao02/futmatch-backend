@@ -7,7 +7,6 @@ import br.com.futmatch.application.dtos.requests.PartidaUpdateRequest;
 import br.com.futmatch.application.usecases.*;
 import br.com.futmatch.domain.models.Usuario;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,29 +19,52 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/partidas")
-@RequiredArgsConstructor
 public class PartidaController {
 
     private final CriarPartidaUseCase criarPartidaUseCase;
     private final AtualizarPartidaUseCase atualizarPartidaUseCase;
     private final ListarPartidasUseCase listarPartidasUseCase;
     private final BuscarPartidaPorIdUseCase buscarPartidaPorIdUseCase;
+    private final BuscarPartidasComFiltroUseCase buscarPartidasComFiltroUseCase;
     private final ParticiparPartidaUseCase participarPartidaUseCase;
     private final CancelarParticipacaoUseCase cancelarParticipacaoUseCase;
     private final ListarPartidasFuturasUseCase listarPartidasFuturasUseCase;
     private final ExcluirPartidaUseCase excluirPartidaUseCase;
+    private final GerenciarParticipacaoUseCase gerenciarParticipacaoUseCase;
+
+    public PartidaController(CriarPartidaUseCase criarPartidaUseCase,
+                             AtualizarPartidaUseCase atualizarPartidaUseCase,
+                             ListarPartidasUseCase listarPartidasUseCase,
+                             BuscarPartidaPorIdUseCase buscarPartidaPorIdUseCase,
+                             BuscarPartidasComFiltroUseCase buscarPartidasComFiltroUseCase,
+                             ParticiparPartidaUseCase participarPartidaUseCase,
+                             CancelarParticipacaoUseCase cancelarParticipacaoUseCase,
+                             ListarPartidasFuturasUseCase listarPartidasFuturasUseCase,
+                             ExcluirPartidaUseCase excluirPartidaUseCase,
+                             GerenciarParticipacaoUseCase gerenciarParticipacaoUseCase) {
+        this.criarPartidaUseCase = criarPartidaUseCase;
+        this.atualizarPartidaUseCase = atualizarPartidaUseCase;
+        this.listarPartidasUseCase = listarPartidasUseCase;
+        this.buscarPartidaPorIdUseCase = buscarPartidaPorIdUseCase;
+        this.buscarPartidasComFiltroUseCase = buscarPartidasComFiltroUseCase;
+        this.participarPartidaUseCase = participarPartidaUseCase;
+        this.cancelarParticipacaoUseCase = cancelarParticipacaoUseCase;
+        this.listarPartidasFuturasUseCase = listarPartidasFuturasUseCase;
+        this.excluirPartidaUseCase = excluirPartidaUseCase;
+        this.gerenciarParticipacaoUseCase = gerenciarParticipacaoUseCase;
+    }
 
     @PostMapping
     public ResponseEntity<PartidaResponse> criarPartida(
             @Valid @RequestBody PartidaRequest request,
             @AuthenticationPrincipal Usuario usuario) {
-        
+
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não autenticado");
         }
-        
+
         PartidaResponse response = criarPartidaUseCase.criarPartida(request, usuario.getId());
-        
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -51,13 +73,13 @@ public class PartidaController {
             @PathVariable Long id,
             @Valid @RequestBody PartidaUpdateRequest request,
             @AuthenticationPrincipal Usuario usuario) {
-        
+
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não autenticado");
         }
-        
+
         PartidaResponse response = atualizarPartidaUseCase.atualizarPartida(id, request, usuario.getId());
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -71,7 +93,7 @@ public class PartidaController {
     public ResponseEntity<Page<PartidaResponse>> listarPartidasFuturas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        
+
         Pageable pageable = PageRequest.of(page, size);
         Page<PartidaResponse> partidas = listarPartidasFuturasUseCase.listarPartidasFuturas(pageable);
         return ResponseEntity.ok(partidas);
@@ -87,11 +109,11 @@ public class PartidaController {
     public ResponseEntity<ParticipacaoResponse> participarPartida(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario) {
-        
+
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não autenticado");
         }
-        
+
         ParticipacaoResponse response = participarPartidaUseCase.participarPartida(id, usuario.getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -100,11 +122,11 @@ public class PartidaController {
     public ResponseEntity<Void> cancelarParticipacao(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario) {
-        
+
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não autenticado");
         }
-        
+
         cancelarParticipacaoUseCase.cancelarParticipacao(id, usuario.getId());
         return ResponseEntity.noContent().build();
     }
@@ -113,11 +135,11 @@ public class PartidaController {
     public ResponseEntity<Void> excluirPartida(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario) {
-        
+
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não autenticado");
         }
-        
+
         excluirPartidaUseCase.excluirPartida(id, usuario.getId());
         return ResponseEntity.noContent().build();
     }
@@ -129,4 +151,4 @@ public class PartidaController {
         }
         return ResponseEntity.ok("Usuário autenticado: " + usuario.getNome() + " (ID: " + usuario.getId() + ")");
     }
-} 
+}

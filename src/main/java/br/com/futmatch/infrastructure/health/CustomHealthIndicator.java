@@ -2,27 +2,29 @@ package br.com.futmatch.infrastructure.health;
 
 import br.com.futmatch.domain.ports.PartidaRepositoryPort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class CustomHealthIndicator implements HealthIndicator {
 
     private final PartidaRepositoryPort partidaRepository;
     private final UsuarioRepositoryPort usuarioRepository;
 
+    public CustomHealthIndicator(PartidaRepositoryPort partidaRepository,
+                                 UsuarioRepositoryPort usuarioRepository) {
+        this.partidaRepository = partidaRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
+
     @Override
     public Health health() {
         try {
-            // Verifica acesso ao repositório de partidas
-            partidaRepository.findAllFuturas(org.springframework.data.domain.PageRequest.of(0, 1));
-            
-            // Verifica acesso ao repositório de usuários
+            partidaRepository.findAllFuturas(PageRequest.of(0, 1));
             usuarioRepository.findByEmail("test@example.com");
-            
+
             return Health.up()
                 .withDetail("partidas", "OK")
                 .withDetail("usuarios", "OK")
@@ -33,4 +35,4 @@ public class CustomHealthIndicator implements HealthIndicator {
                 .build();
         }
     }
-} 
+}
