@@ -27,4 +27,7 @@ public interface ParticipacaoSpringRepository extends JpaRepository<Participacao
     
     @Query("SELECT COUNT(p) FROM ParticipacaoEntity p WHERE p.partida.id = :partidaId AND p.status = :status")
     long countByPartidaAndStatus(@Param("partidaId") Long partidaId, @Param("status") StatusParticipacao status);
-} 
+
+    @Query("SELECT p FROM ParticipacaoEntity p WHERE p.partida.id = :partidaId AND p.status = :status")
+    List<ParticipacaoEntity> findByPartidaIdAndStatus(@Param("partidaId") Long partidaId, @Param("status") StatusParticipacao status);
+}

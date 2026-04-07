@@ -50,6 +50,13 @@ public class ParticipacaoJpaAdapter implements ParticipacaoRepositoryPort {
     }
 
     @Override
+    public List<Participacao> findByPartidaIdAndStatus(Long partidaId, StatusParticipacao status) {
+        return participacaoSpringRepository.findByPartidaIdAndStatus(partidaId, status).stream()
+                .map(participacaoMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void delete(Participacao participacao) {
         ParticipacaoEntity entity = participacaoMapper.toEntity(participacao);
         participacaoSpringRepository.delete(entity);

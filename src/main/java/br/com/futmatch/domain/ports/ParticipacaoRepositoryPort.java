@@ -11,6 +11,7 @@ public interface ParticipacaoRepositoryPort {
     Optional<Participacao> findByUsuarioAndPartida(Long usuarioId, Long partidaId);
     List<Participacao> findByPartidaId(Long partidaId);
     List<Participacao> findByUsuarioId(Long usuarioId);
+    List<Participacao> findByPartidaIdAndStatus(Long partidaId, StatusParticipacao status);
     void delete(Participacao participacao);
     boolean existsByUsuarioAndPartida(Long usuarioId, Long partidaId);
     long countByPartidaAndStatus(Long partidaId, StatusParticipacao status);

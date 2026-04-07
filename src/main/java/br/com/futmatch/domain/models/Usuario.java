@@ -67,7 +67,7 @@ public class Usuario extends BaseModel {
     public String getEmail() { return email; }
     public String getSenha() { return senha; }
     public String getFotoPerfilUrl() { return fotoPerfilUrl; }
-    public Set<String> getRoles() { return roles != null ? Set.copyOf(roles) : Set.of(); }
+    public Set<String> getRoles() { return roles != null ? new HashSet<>(roles) : new HashSet<>(); }
 
     public void assignRole(String role) {
         if (this.roles == null) {

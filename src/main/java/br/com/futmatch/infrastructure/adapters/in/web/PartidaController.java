@@ -1,6 +1,7 @@
 package br.com.futmatch.infrastructure.adapters.in.web;
 
 import br.com.futmatch.application.dtos.requests.PartidaRequest;
+import br.com.futmatch.application.dtos.responses.PartidaDetalhesResponse;
 import br.com.futmatch.application.dtos.responses.PartidaResponse;
 import br.com.futmatch.application.dtos.responses.ParticipacaoResponse;
 import br.com.futmatch.application.dtos.requests.PartidaUpdateRequest;
@@ -31,6 +32,7 @@ public class PartidaController {
     private final ListarPartidasFuturasUseCase listarPartidasFuturasUseCase;
     private final ExcluirPartidaUseCase excluirPartidaUseCase;
     private final GerenciarParticipacaoUseCase gerenciarParticipacaoUseCase;
+    private final BuscarPartidaDetalhesUseCase buscarPartidaDetalhesUseCase;
 
     public PartidaController(CriarPartidaUseCase criarPartidaUseCase,
                              AtualizarPartidaUseCase atualizarPartidaUseCase,
@@ -41,7 +43,8 @@ public class PartidaController {
                              CancelarParticipacaoUseCase cancelarParticipacaoUseCase,
                              ListarPartidasFuturasUseCase listarPartidasFuturasUseCase,
                              ExcluirPartidaUseCase excluirPartidaUseCase,
-                             GerenciarParticipacaoUseCase gerenciarParticipacaoUseCase) {
+                             GerenciarParticipacaoUseCase gerenciarParticipacaoUseCase,
+                             BuscarPartidaDetalhesUseCase buscarPartidaDetalhesUseCase) {
         this.criarPartidaUseCase = criarPartidaUseCase;
         this.atualizarPartidaUseCase = atualizarPartidaUseCase;
         this.listarPartidasUseCase = listarPartidasUseCase;
@@ -52,6 +55,7 @@ public class PartidaController {
         this.listarPartidasFuturasUseCase = listarPartidasFuturasUseCase;
         this.excluirPartidaUseCase = excluirPartidaUseCase;
         this.gerenciarParticipacaoUseCase = gerenciarParticipacaoUseCase;
+        this.buscarPartidaDetalhesUseCase = buscarPartidaDetalhesUseCase;
     }
 
     @PostMapping
@@ -142,6 +146,19 @@ public class PartidaController {
 
         excluirPartidaUseCase.excluirPartida(id, usuario.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/detalhes")
+    public ResponseEntity<PartidaDetalhesResponse> buscarDetalhesPartida(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuario) {
+
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuário não autenticado");
+        }
+
+        PartidaDetalhesResponse response = buscarPartidaDetalhesUseCase.buscarDetalhes(id, usuario.getId());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/teste-auth")
