@@ -55,6 +55,7 @@ class AtualizarPartidaUseCaseImplTest {
         request.setNome("Updated Name");
 
         when(partidaRepositoryPort.findById(1L)).thenReturn(Optional.of(partida));
+        when(usuarioRepositoryPort.findById(1L)).thenReturn(Optional.of(criador));
         when(partidaRepositoryPort.update(partida)).thenReturn(partida);
 
         PartidaResponse response = new PartidaResponse();
@@ -82,6 +83,7 @@ class AtualizarPartidaUseCaseImplTest {
 
         PartidaUpdateRequest request = new PartidaUpdateRequest();
         when(partidaRepositoryPort.findById(1L)).thenReturn(Optional.of(partida));
+        when(usuarioRepositoryPort.findById(2L)).thenReturn(Optional.of(outroUsuario));
 
         assertThrows(IllegalArgumentException.class, () -> useCase.atualizarPartida(1L, request, 2L));
     }

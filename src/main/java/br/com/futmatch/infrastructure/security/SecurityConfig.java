@@ -1,8 +1,9 @@
 package br.com.futmatch.infrastructure.security;
 
+import br.com.futmatch.infrastructure.adapters.in.web.JsonApiErrorWriter;
+import br.com.futmatch.infrastructure.adapters.in.web.dto.ErrorCode;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Bucket4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -34,10 +35,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JsonApiErrorWriter jsonApiErrorWriter;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, JsonApiErrorWriter jsonApiErrorWriter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.jsonApiErrorWriter = jsonApiErrorWriter;
     }
 
     @Bean
@@ -65,14 +68,20 @@ public class SecurityConfig {
             )
             .exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Acesso não autorizado\",\"message\":\"" + authException.getMessage() + "\"}");
+                    try {
+                        jsonApiErrorWriter.write(response, HttpStatus.UNAUTHORIZED, ErrorCode.ACESSO_NAO_AUTORIZADO,
+                                "Acesso não autorizado");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 })
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Acesso negado\",\"message\":\"" + accessDeniedException.getMessage() + "\"}");
+                    try {
+                        jsonApiErrorWriter.write(response, HttpStatus.FORBIDDEN, ErrorCode.ACESSO_NEGADO,
+                                "Acesso negado");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 })
             )
             .addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -121,8 +130,12 @@ public class SecurityConfig {
                 if (bucket.tryConsume(1)) {
                     filterChain.doFilter(request, response);
                 } else {
-                    response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                    response.getWriter().write("Rate limit exceeded");
+                    try {
+                        jsonApiErrorWriter.write(response, HttpStatus.TOO_MANY_REQUESTS, ErrorCode.RATE_LIMIT_EXCEDIDO,
+                                "Limite de requisições excedido. Tente novamente em instantes.");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         };

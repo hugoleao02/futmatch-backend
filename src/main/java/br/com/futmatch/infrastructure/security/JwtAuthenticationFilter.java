@@ -3,10 +3,13 @@ package br.com.futmatch.infrastructure.security;
 import br.com.futmatch.domain.models.Usuario;
 import br.com.futmatch.domain.ports.TokenServicePort;
 import br.com.futmatch.domain.ports.UsuarioRepositoryPort;
+import br.com.futmatch.infrastructure.adapters.in.web.JsonApiErrorWriter;
+import br.com.futmatch.infrastructure.adapters.in.web.dto.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,11 +29,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenServicePort tokenServicePort;
     private final UsuarioRepositoryPort usuarioRepositoryPort;
+    private final JsonApiErrorWriter jsonApiErrorWriter;
 
     public JwtAuthenticationFilter(TokenServicePort tokenServicePort,
-                                   UsuarioRepositoryPort usuarioRepositoryPort) {
+                                   UsuarioRepositoryPort usuarioRepositoryPort,
+                                   JsonApiErrorWriter jsonApiErrorWriter) {
         this.tokenServicePort = tokenServicePort;
         this.usuarioRepositoryPort = usuarioRepositoryPort;
+        this.jsonApiErrorWriter = jsonApiErrorWriter;
     }
 
     @Override
@@ -65,20 +71,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
                     log.warning("Usuário não encontrado para email: " + email);
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Usuário não encontrado ou não autorizado");
+                    jsonApiErrorWriter.write(response, HttpStatus.UNAUTHORIZED, ErrorCode.USUARIO_NAO_ENCONTRADO_OU_NAO_AUTORIZADO,
+                            "Usuário não encontrado ou não autorizado");
                     return;
                 }
             } catch (Exception e) {
                 log.severe("Erro ao processar token: " + e.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token inválido ou erro de autenticação");
+                jsonApiErrorWriter.write(response, HttpStatus.UNAUTHORIZED, ErrorCode.TOKEN_INVALIDO_OU_ERRO_AUTENTICACAO,
+                        "Token inválido ou erro de autenticação");
                 return;
             }
         } else {
             log.warning("Token inválido ou nulo para endpoint protegido: " + request.getRequestURI());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token inválido ou ausente");
+            jsonApiErrorWriter.write(response, HttpStatus.UNAUTHORIZED, ErrorCode.TOKEN_INVALIDO_OU_AUSENTE,
+                    "Token inválido ou ausente");
             return;
         }
 
