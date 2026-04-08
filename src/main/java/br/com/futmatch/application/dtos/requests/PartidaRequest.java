@@ -21,6 +21,9 @@ public class PartidaRequest {
     @DecimalMax(value = "180.0", message = "Longitude deve estar entre -180 e 180")
     private Double longitude;
 
+    @Size(max = 512, message = "Nome do local deve ter no máximo 512 caracteres")
+    private String nomeLocal;
+
     @NotNull(message = "Data e hora são obrigatórias")
     @FutureOrPresent(message = "Data e hora devem ser no presente ou futuro")
     private LocalDateTime dataHora;
@@ -41,6 +44,8 @@ public class PartidaRequest {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getNomeLocal() { return nomeLocal; }
+    public void setNomeLocal(String nomeLocal) { this.nomeLocal = nomeLocal; }
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
     public Integer getTotalJogadores() { return totalJogadores; }

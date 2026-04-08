@@ -20,4 +20,6 @@ public interface PartidaRepositoryPort {
     Page<Partida> findByTipoPartida(String tipoPartida, Pageable pageable);
     Page<Partida> findByDataHoraBetween(LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
     Page<Partida> findByEsporteAndTipoPartida(String esporte, String tipoPartida, Pageable pageable);
+
+    List<Partida> findByDataHoraBefore(LocalDateTime limite);
 } 

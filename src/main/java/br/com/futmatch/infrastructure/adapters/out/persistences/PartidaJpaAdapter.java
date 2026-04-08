@@ -1,8 +1,12 @@
 package br.com.futmatch.infrastructure.adapters.out.persistences;
 
+import br.com.futmatch.domain.models.Participacao;
 import br.com.futmatch.domain.models.Partida;
 import br.com.futmatch.domain.ports.PartidaRepositoryPort;
+import br.com.futmatch.infrastructure.adapters.out.persistences.entities.ParticipacaoEntity;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.PartidaEntity;
+import br.com.futmatch.infrastructure.adapters.out.persistences.entities.UsuarioEntity;
+import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.ParticipacaoMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.mappers.PartidaMapper;
 import br.com.futmatch.infrastructure.adapters.out.persistences.repositories.PartidaSpringRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -10,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +26,7 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
 
     private final PartidaSpringRepository partidaSpringRepository;
     private final PartidaMapper partidaMapper;
+    private final ParticipacaoMapper participacaoMapper = new ParticipacaoMapper();
 
     public PartidaJpaAdapter(PartidaSpringRepository partidaSpringRepository,
                              PartidaMapper partidaMapper) {
@@ -31,11 +37,37 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     @Override
     public Partida save(Partida partida) {
         PartidaEntity entity = partidaMapper.toEntity(partida);
+        vincularCriadorEParticipantes(partida, entity);
         PartidaEntity savedEntity = partidaSpringRepository.save(entity);
         return partidaMapper.toDomain(savedEntity);
     }
 
+    /**
+     * PartidaMapper.toEntity não preenche relações JPA; sem criador_id o INSERT falha (NOT NULL)
+     * e vira 409 via DataIntegrityViolationException.
+     */
+    private void vincularCriadorEParticipantes(Partida partida, PartidaEntity entity) {
+        if (partida.getCriador() != null && partida.getCriador().getId() != null) {
+            UsuarioEntity criadorRef = new UsuarioEntity();
+            criadorRef.setId(partida.getCriador().getId());
+            entity.setCriador(criadorRef);
+        }
+        if (partida.getParticipantes() == null) {
+            return;
+        }
+        for (Participacao p : partida.getParticipantes()) {
+            ParticipacaoEntity pe = participacaoMapper.toEntity(p);
+            if (p.getUsuario() != null && p.getUsuario().getId() != null) {
+                UsuarioEntity usuarioRef = new UsuarioEntity();
+                usuarioRef.setId(p.getUsuario().getId());
+                pe.setUsuario(usuarioRef);
+            }
+            entity.adicionarParticipante(pe);
+        }
+    }
+
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "partidas", key = "#id")
     public Optional<Partida> findById(Long id) {
         return partidaSpringRepository.findById(id)
@@ -100,5 +132,13 @@ public class PartidaJpaAdapter implements PartidaRepositoryPort {
     public Page<Partida> findByEsporteAndTipoPartida(String esporte, String tipoPartida, Pageable pageable) {
         return partidaSpringRepository.findByEsporteAndTipoPartida(esporte, tipoPartida, pageable)
             .map(partidaMapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Partida> findByDataHoraBefore(LocalDateTime limite) {
+        return partidaSpringRepository.findByDataHoraBefore(limite).stream()
+                .map(partidaMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

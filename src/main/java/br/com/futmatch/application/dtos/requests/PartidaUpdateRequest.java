@@ -26,6 +26,9 @@ public class PartidaUpdateRequest {
 
     private String tipoPartida;
 
+    @Size(max = 512, message = "Nome do local deve ter no máximo 512 caracteres")
+    private String nomeLocal;
+
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public String getEsporte() { return esporte; }
@@ -40,4 +43,6 @@ public class PartidaUpdateRequest {
     public void setTotalJogadores(Integer totalJogadores) { this.totalJogadores = totalJogadores; }
     public String getTipoPartida() { return tipoPartida; }
     public void setTipoPartida(String tipoPartida) { this.tipoPartida = tipoPartida; }
+    public String getNomeLocal() { return nomeLocal; }
+    public void setNomeLocal(String nomeLocal) { this.nomeLocal = nomeLocal; }
 }

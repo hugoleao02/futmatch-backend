@@ -147,6 +147,20 @@ As tabelas são criadas automaticamente pelo Hibernate:
 - `partidas`: armazena os dados das partidas
 - `participacoes`: gerencia a participação dos usuários nas partidas
 
+## Exclusão de partida (criador)
+
+- **DELETE** `/api/partidas/{id}` — apenas o criador autenticado pode excluir; participações são removidas antes da partida (`ExcluirPartidaUseCase`).
+
+## Limpeza automática (partidas antigas)
+
+Job agendado (`PartidaPurgeScheduler`) executa o caso de uso `PurgarPartidasEncerradasUseCase`: remove partidas cuja `dataHora` é anterior a **agora menos N dias** (padrão **1 dia** após a data/hora da partida), na mesma ordem (participações → partida).
+
+Propriedades em `application.properties`:
+
+- `app.partidas.purge.enabled` — liga/desliga o agendamento (padrão `true`)
+- `app.partidas.purge.dias-apos-partida` — dias após `dataHora` para considerar elegível à remoção (padrão `1`)
+- `app.partidas.purge.cron` — expressão cron Spring (padrão diário às 03:00: `0 0 3 * * *`)
+
 ## Próximos Passos
 
 - Implementar listagem de partidas

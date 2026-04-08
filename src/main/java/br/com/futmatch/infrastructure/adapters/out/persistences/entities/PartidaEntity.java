@@ -24,6 +24,9 @@ public class PartidaEntity extends BaseEntity{
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(name = "nome_local", length = 512)
+    private String nomeLocal;
+
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
@@ -49,6 +52,8 @@ public class PartidaEntity extends BaseEntity{
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getNomeLocal() { return nomeLocal; }
+    public void setNomeLocal(String nomeLocal) { this.nomeLocal = nomeLocal; }
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
     public Integer getTotalJogadores() { return totalJogadores; }

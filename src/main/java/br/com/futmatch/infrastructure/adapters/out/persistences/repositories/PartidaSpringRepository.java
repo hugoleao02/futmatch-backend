@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface PartidaSpringRepository extends JpaRepository<PartidaEntity, Long> {
+
+    List<PartidaEntity> findByDataHoraBefore(LocalDateTime dataHora);
     
     @Query("SELECT p FROM PartidaEntity p LEFT JOIN FETCH p.criador WHERE p.dataHora >= CURRENT_TIMESTAMP")
     Page<PartidaEntity> findAllFuturas(Pageable pageable);

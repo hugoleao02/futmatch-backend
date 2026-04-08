@@ -47,8 +47,8 @@ class ListarPartidasUseCaseImplTest {
         r2.setId(2L);
 
         when(partidaRepositoryPort.findAll()).thenReturn(Arrays.asList(p1, p2));
-        when(partidaMapper.toResponse(p1)).thenReturn(r1);
-        when(partidaMapper.toResponse(p2)).thenReturn(r2);
+        when(partidaMapper.toResponseFull(p1)).thenReturn(r1);
+        when(partidaMapper.toResponseFull(p2)).thenReturn(r2);
 
         List<PartidaResponse> result = useCase.listarPartidas();
 

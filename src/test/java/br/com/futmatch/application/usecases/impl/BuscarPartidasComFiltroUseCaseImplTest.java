@@ -78,7 +78,7 @@ class BuscarPartidasComFiltroUseCaseImplTest {
         Page<PartidaResponse> responsePage = new PageImpl<>(List.of(response), pageable, 1);
 
         when(partidaRepositoryPort.findByEsporte(eq("FUTEBOL"), eq(pageable))).thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida)).thenReturn(response);
+        when(partidaMapper.toResponseFull(partida)).thenReturn(response);
 
         useCase = new BuscarPartidasComFiltroUseCaseImpl(partidaRepositoryPort, partidaMapper);
 
@@ -104,7 +104,7 @@ class BuscarPartidasComFiltroUseCaseImplTest {
         Page<PartidaResponse> responsePage = new PageImpl<>(List.of(response), pageable, 1);
 
         when(partidaRepositoryPort.findByTipoPartida(eq("PUBLICA"), eq(pageable))).thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida)).thenReturn(response);
+        when(partidaMapper.toResponseFull(partida)).thenReturn(response);
 
         useCase = new BuscarPartidasComFiltroUseCaseImpl(partidaRepositoryPort, partidaMapper);
 
@@ -130,7 +130,7 @@ class BuscarPartidasComFiltroUseCaseImplTest {
 
         when(partidaRepositoryPort.findByEsporteAndTipoPartida(eq("FUTEBOL"), eq("PUBLICA"), eq(pageable)))
                 .thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida)).thenReturn(response);
+        when(partidaMapper.toResponseFull(partida)).thenReturn(response);
 
         useCase = new BuscarPartidasComFiltroUseCaseImpl(partidaRepositoryPort, partidaMapper);
 
@@ -155,7 +155,7 @@ class BuscarPartidasComFiltroUseCaseImplTest {
         Page<Partida> partidaPage = new PageImpl<>(List.of(partida), pageable, 1);
 
         when(partidaRepositoryPort.findAllFuturas(eq(pageable))).thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida)).thenReturn(response);
+        when(partidaMapper.toResponseFull(partida)).thenReturn(response);
 
         useCase = new BuscarPartidasComFiltroUseCaseImpl(partidaRepositoryPort, partidaMapper);
 
@@ -179,7 +179,7 @@ class BuscarPartidasComFiltroUseCaseImplTest {
         Page<Partida> partidaPage = new PageImpl<>(List.of(partida), pageable, 1);
 
         when(partidaRepositoryPort.findAllFuturas(eq(pageable))).thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida)).thenReturn(response);
+        when(partidaMapper.toResponseFull(partida)).thenReturn(response);
 
         useCase = new BuscarPartidasComFiltroUseCaseImpl(partidaRepositoryPort, partidaMapper);
 

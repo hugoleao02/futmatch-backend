@@ -27,19 +27,19 @@ public class BuscarPartidasComFiltroUseCaseImpl implements BuscarPartidasComFilt
 
         if (filtro.getEsporte() != null && filtro.getTipoPartida() != null) {
             return partidaRepositoryPort.findByEsporteAndTipoPartida(filtro.getEsporte(), filtro.getTipoPartida(), pageable)
-                    .map(partidaMapper::toResponse);
+                    .map(partidaMapper::toResponseFull);
         } else if (filtro.getEsporte() != null) {
             return partidaRepositoryPort.findByEsporte(filtro.getEsporte(), pageable)
-                    .map(partidaMapper::toResponse);
+                    .map(partidaMapper::toResponseFull);
         } else if (filtro.getTipoPartida() != null) {
             return partidaRepositoryPort.findByTipoPartida(filtro.getTipoPartida(), pageable)
-                    .map(partidaMapper::toResponse);
+                    .map(partidaMapper::toResponseFull);
         } else if (filtro.getApenasFuturas() != null && filtro.getApenasFuturas()) {
             return partidaRepositoryPort.findAllFuturas(pageable)
-                    .map(partidaMapper::toResponse);
+                    .map(partidaMapper::toResponseFull);
         }
         return partidaRepositoryPort.findAllFuturas(pageable)
-                .map(partidaMapper::toResponse);
+                .map(partidaMapper::toResponseFull);
     }
 
     private Pageable getPageable(PartidaFiltroRequest filtro) {

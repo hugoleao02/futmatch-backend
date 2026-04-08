@@ -48,7 +48,8 @@ public class CriarPartidaUseCaseImpl implements CriarPartidaUseCase {
                 request.getDataHora(),
                 request.getTotalJogadores(),
                 tipoPartida,
-                criador
+                criador,
+                request.getNomeLocal()
         );
 
         Partida partidaSalva = partidaRepositoryPort.save(partida);

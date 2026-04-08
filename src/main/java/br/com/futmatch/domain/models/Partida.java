@@ -13,6 +13,8 @@ public class Partida extends BaseModel {
     private String nome;
     private Esporte esporte;
     private Localizacao localizacao;
+    /** Nome ou endereço legível do local (ex.: resultado do autocomplete). */
+    private String nomeLocal;
     private LocalDateTime dataHora;
     private Integer totalJogadores;
     private TipoPartida tipoPartida;
@@ -26,10 +28,16 @@ public class Partida extends BaseModel {
 
     public Partida(String nome, Esporte esporte, Localizacao localizacao, LocalDateTime dataHora,
                    Integer totalJogadores, TipoPartida tipoPartida, Usuario criador) {
+        this(nome, esporte, localizacao, dataHora, totalJogadores, tipoPartida, criador, null);
+    }
+
+    public Partida(String nome, Esporte esporte, Localizacao localizacao, LocalDateTime dataHora,
+                   Integer totalJogadores, TipoPartida tipoPartida, Usuario criador, String nomeLocal) {
         super();
         this.nome = nome;
         this.esporte = esporte;
         this.localizacao = localizacao;
+        this.nomeLocal = nomeLocal;
         this.dataHora = dataHora;
         this.totalJogadores = totalJogadores;
         this.tipoPartida = tipoPartida;
@@ -41,10 +49,16 @@ public class Partida extends BaseModel {
 
     public Partida(Long id, String nome, Esporte esporte, Localizacao localizacao, LocalDateTime dataHora,
                    Integer totalJogadores, TipoPartida tipoPartida, Usuario criador) {
+        this(id, nome, esporte, localizacao, dataHora, totalJogadores, tipoPartida, criador, null);
+    }
+
+    public Partida(Long id, String nome, Esporte esporte, Localizacao localizacao, LocalDateTime dataHora,
+                   Integer totalJogadores, TipoPartida tipoPartida, Usuario criador, String nomeLocal) {
         super(id, null, null);
         this.nome = nome;
         this.esporte = esporte;
         this.localizacao = localizacao;
+        this.nomeLocal = nomeLocal;
         this.dataHora = dataHora;
         this.totalJogadores = totalJogadores;
         this.tipoPartida = tipoPartida;
@@ -54,6 +68,7 @@ public class Partida extends BaseModel {
     public String getNome() { return nome; }
     public Esporte getEsporte() { return esporte; }
     public Localizacao getLocalizacao() { return localizacao; }
+    public String getNomeLocal() { return nomeLocal; }
     public LocalDateTime getDataHora() { return dataHora; }
     public Integer getTotalJogadores() { return totalJogadores; }
     public TipoPartida getTipoPartida() { return tipoPartida; }
@@ -109,6 +124,12 @@ public class Partida extends BaseModel {
     public void atualizarLocalizacao(Localizacao localizacao) {
         if (localizacao != null) {
             this.localizacao = localizacao;
+        }
+    }
+
+    public void atualizarNomeLocal(String nomeLocal) {
+        if (nomeLocal != null && !nomeLocal.isBlank()) {
+            this.nomeLocal = nomeLocal.trim();
         }
     }
 

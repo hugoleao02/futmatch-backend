@@ -70,6 +70,7 @@ public class AtualizarPartidaUseCaseImpl implements AtualizarPartidaUseCase {
         if (request.getDataHora() != null) partida.atualizarDataHora(request.getDataHora());
         if (request.getTotalJogadores() != null) partida.atualizarTotalJogadores(request.getTotalJogadores());
         if (request.getTipoPartida() != null) partida.atualizarTipoPartida(TipoPartida.valueOf(request.getTipoPartida().toUpperCase()));
+        if (request.getNomeLocal() != null) partida.atualizarNomeLocal(request.getNomeLocal());
     }
 
     private <E extends Enum<E>> void validarEnum(Class<E> enumClass, String valor, String mensagemErro) {

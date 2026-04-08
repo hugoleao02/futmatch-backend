@@ -67,13 +67,17 @@ public class BuscarPartidaDetalhesUseCaseImpl implements BuscarPartidaDetalhesUs
             response.setLatitude(partida.getLocalizacao().latitude());
             response.setLongitude(partida.getLocalizacao().longitude());
         }
+        response.setNomeLocal(partida.getNomeLocal());
 
         if (partida.getCriador() != null) {
             response.setCriadorId(partida.getCriador().getId());
             response.setCriadorNome(partida.getCriador().getNome());
         }
 
-        response.setIsCriador(partida.ehCriadoPor(usuario));
+        boolean usuarioEhCriador = partida.getCriador() != null
+                && partida.getCriador().getId() != null
+                && partida.getCriador().getId().equals(usuario.getId());
+        response.setIsCriador(usuarioEhCriador);
         response.setIsParticipando(usuarioConfirmado);
         response.setHasSolicitado(hasSolicitacaoPendente);
         response.setTimes(null);

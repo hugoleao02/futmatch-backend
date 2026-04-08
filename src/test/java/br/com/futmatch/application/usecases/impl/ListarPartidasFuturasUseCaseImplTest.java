@@ -69,8 +69,8 @@ class ListarPartidasFuturasUseCaseImplTest {
         Page<PartidaResponse> responsePage = new PageImpl<>(List.of(response1, response2), pageable, 2);
 
         when(partidaRepositoryPort.findAllFuturas(pageable)).thenReturn(partidaPage);
-        when(partidaMapper.toResponse(partida1)).thenReturn(response1);
-        when(partidaMapper.toResponse(partida2)).thenReturn(response2);
+        when(partidaMapper.toResponseFull(partida1)).thenReturn(response1);
+        when(partidaMapper.toResponseFull(partida2)).thenReturn(response2);
 
         useCase = new ListarPartidasFuturasUseCaseImpl(partidaRepositoryPort, partidaMapper);
 
@@ -79,8 +79,8 @@ class ListarPartidasFuturasUseCaseImplTest {
         assertThat(result).hasSize(2);
         assertThat(result.getContent()).containsExactly(response1, response2);
         verify(partidaRepositoryPort).findAllFuturas(pageable);
-        verify(partidaMapper).toResponse(partida1);
-        verify(partidaMapper).toResponse(partida2);
+        verify(partidaMapper).toResponseFull(partida1);
+        verify(partidaMapper).toResponseFull(partida2);
     }
 
     @Test
@@ -96,6 +96,6 @@ class ListarPartidasFuturasUseCaseImplTest {
 
         assertThat(result).isEmpty();
         verify(partidaRepositoryPort).findAllFuturas(pageable);
-        verify(partidaMapper, never()).toResponse(any());
+        verify(partidaMapper, never()).toResponseFull(any());
     }
 }

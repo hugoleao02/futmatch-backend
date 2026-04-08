@@ -24,7 +24,7 @@ public class ListarPartidasUseCaseImpl implements ListarPartidasUseCase {
     @Override
     public List<PartidaResponse> listarPartidas() {
         return partidaRepositoryPort.findAll().stream()
-                .map(partidaMapper::toResponse)
+                .map(partidaMapper::toResponseFull)
                 .collect(Collectors.toList());
     }
 }

@@ -23,6 +23,6 @@ public class ListarPartidasFuturasUseCaseImpl implements ListarPartidasFuturasUs
     @Override
     public Page<PartidaResponse> listarPartidasFuturas(Pageable pageable) {
         return partidaRepositoryPort.findAllFuturas(pageable)
-                .map(partidaMapper::toResponse);
+                .map(partidaMapper::toResponseFull);
     }
 }

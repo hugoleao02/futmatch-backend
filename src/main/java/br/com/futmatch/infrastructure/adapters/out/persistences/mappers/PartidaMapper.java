@@ -3,10 +3,12 @@ package br.com.futmatch.infrastructure.adapters.out.persistences.mappers;
 import br.com.futmatch.application.dtos.responses.PartidaResponse;
 import br.com.futmatch.domain.models.Participacao;
 import br.com.futmatch.domain.models.Partida;
+import br.com.futmatch.domain.models.Usuario;
 import br.com.futmatch.domain.models.enums.Esporte;
 import br.com.futmatch.domain.models.enums.StatusParticipacao;
 import br.com.futmatch.domain.models.enums.TipoPartida;
 import br.com.futmatch.infrastructure.adapters.out.persistences.entities.PartidaEntity;
+import br.com.futmatch.infrastructure.adapters.out.persistences.entities.UsuarioEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -35,6 +37,7 @@ public interface PartidaMapper {
             response.setCriadorId(partida.getCriador().getId());
             response.setCriadorNome(partida.getCriador().getNome());
         }
+        response.setNomeLocal(partida.getNomeLocal());
         return response;
     }
 
@@ -69,6 +72,7 @@ public interface PartidaMapper {
         entity.setDataHora(partida.getDataHora());
         entity.setTotalJogadores(partida.getTotalJogadores());
         entity.setTipoPartida(partida.getTipoPartida());
+        entity.setNomeLocal(partida.getNomeLocal());
         return entity;
     }
 
@@ -78,6 +82,11 @@ public interface PartidaMapper {
         if (entity.getLatitude() != null && entity.getLongitude() != null) {
             localizacao = br.com.futmatch.domain.valueobjects.Localizacao.criadaPara(entity.getLatitude(), entity.getLongitude());
         }
+        Usuario criador = null;
+        if (entity.getCriador() != null) {
+            UsuarioEntity uc = entity.getCriador();
+            criador = new Usuario(uc.getId(), uc.getNome(), uc.getEmail(), uc.getSenha());
+        }
         return new Partida(
                 entity.getId(),
                 entity.getNome(),
@@ -86,7 +95,8 @@ public interface PartidaMapper {
                 entity.getDataHora(),
                 entity.getTotalJogadores(),
                 entity.getTipoPartida(),
-                null
+                criador,
+                entity.getNomeLocal()
         );
     }
 }

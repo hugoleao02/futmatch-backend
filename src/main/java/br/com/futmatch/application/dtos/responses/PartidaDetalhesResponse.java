@@ -1,5 +1,6 @@
 package br.com.futmatch.application.dtos.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
@@ -15,6 +16,7 @@ public class PartidaDetalhesResponse implements Serializable {
     private String esporte;
     private Double latitude;
     private Double longitude;
+    private String nomeLocal;
     private LocalDateTime dataHora;
     private Integer totalJogadores;
     private String tipoPartida;
@@ -22,8 +24,12 @@ public class PartidaDetalhesResponse implements Serializable {
     private String criadorNome;
     private Integer participantesConfirmados;
     private List<ParticipanteInfo> participantes;
+    /** Nomes explícitos: Jackson serializaria "isCriador" como "criador" sem @JsonProperty. */
+    @JsonProperty("isCriador")
     private boolean isCriador;
+    @JsonProperty("isParticipando")
     private boolean isParticipando;
+    @JsonProperty("hasSolicitado")
     private boolean hasSolicitado;
     private List<ParticipanteInfo> solicitacoes;
     private Object times;
@@ -40,6 +46,8 @@ public class PartidaDetalhesResponse implements Serializable {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public String getNomeLocal() { return nomeLocal; }
+    public void setNomeLocal(String nomeLocal) { this.nomeLocal = nomeLocal; }
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
     public Integer getTotalJogadores() { return totalJogadores; }
